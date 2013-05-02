@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<extension key="com.cividesk.normalize" type="module">
+  <file>normalize</file>
+  <name>Cividesk Normalize</name>
+  <description>Normalizes data prior to saving to database.</description>
+  <license>GNU Affero General Public License, version 3</license>
+  <maintainer>
+    <author>Nicolas Ganivet</author>
+    <email>nicolas@cividesk.com</email>
+  </maintainer>
+  <releaseDate>2013-03-08</releaseDate>
+  <version>1.0</version>
+  <develStage>stable</develStage>
+  <compatibility>
+    <ver>4.2</ver>
+    <ver>4.3</ver>
+  </compatibility>
+  <comments>This module is very configurable - choose which data you want to normalize and how! Settings are accessed from the 'Administer / Customize Data and Screens / Cividesk Normalize' menu.</comments>
+  <civix>
+    <namespace>CRM/Normalize</namespace>
+  </civix>
+</extension>
