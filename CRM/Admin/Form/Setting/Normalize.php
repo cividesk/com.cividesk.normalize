@@ -69,7 +69,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       ts('Normalize zip codes and flag incorrect entries')
     );
 
-    if (!$this->_values['cividesk_registered']) {
+    if ( ! CRM_Utils_Array::value('cividesk_registered', $this->_values) ) {
       $element =& $this->add('checkbox',
         'cividesk_register',
         ts('Register with Cividesk'));
@@ -79,6 +79,12 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       ts('Send updates to'));
     $this->addRule('cividesk_subscribed', ts('Please enter a valid email address.'), 'email');
 
+    //added these element to process normalization.
+    $this->addElement('text', "to_contact_id", ts("To Contact ID"));
+    $this->addElement('text', "from_contact_id", ts("From Contact ID"));
+    $this->addFormRule(array('CRM_Admin_Form_Setting_Normalize', 'formRule'));    
+    
+    
     $this->addButtons(array(
       array(
         'type' => 'submit',
@@ -98,6 +104,23 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     return $defaults;
   }
 
+  static function formRule($fields) {
+    $errors = array();
+    //validate data when user click on perform normalization.
+    if (isset($fields['_qf_Normalize_submit']) && $fields['_qf_Normalize_submit'] == 'Perform Normalization') {
+      //validate from contact id.
+      if (empty($fields['to_contact_id'])) {
+        $errors['to_contact_id'] = ts("Please enter last contact id.");
+      }
+      //validate from contact id.
+      if (empty($fields['from_contact_id'])) {
+        $errors['from_contact_id'] = ts("Please enter start contact id.");
+      }
+    }
+
+    return empty($errors) ? TRUE : $errors;
+  }
+
   /**
    * Function to process the form
    *
@@ -108,15 +131,31 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     // store the submitted values in an array
     $params = $this->exportValues();
 
+    if (isset($params['_qf_Normalize_submit']) && $params['_qf_Normalize_submit'] == 'Perform Normalization') {
+        $fromContactId = $params['from_contact_id'];
+        $toContactId = $params['to_contact_id'];
+        if (empty($fromContactId) || empty($toContactId)) {
+            CRM_Core_Session::setStatus(ts('No contact has been updated'));
+            return true;
+        }
+        $normalization = CRM_Utils_Normalize::singleton();
+        $processingInfo = $normalization->processNormalization($fromContactId, $toContactId);
+        
+        $updateMessage = ts('Normalization done. <br />Total Contact(s) updated: %1 <br />Total Phone(s) updated: %2<br />Total Address(es) updated: %3', array(1 => count($processingInfo['name']), count($processingInfo['phone']), count($processingInfo['address'])));
+        CRM_Core_Session::setStatus($updateMessage);
+        
+        return true;
+    }
+    
     // Check registration
-    if ($params['cividesk_register']) {
+    if ( CRM_Utils_Array::value('cividesk_register', $params) ) {
       if (CRM_Core_Cividesk::register("Normalize")) {
         CRM_Utils_Normalize::setSetting(true, 'cividesk_registered');
         CRM_Core_Session::setStatus(ts('Thank you for registering with Cividesk.'));
       }
     }
     // Check subscription
-    if ($params['cividesk_subscribed'] != $this->_values['cividesk_subscribed']) {
+    if ( CRM_Utils_Array::value('cividesk_subscribed', $params) != CRM_Utils_Array::value('cividesk_subscribed', $this->_values) ) {
       if ($params['cividesk_subscribed']) {
         if (CRM_Core_Cividesk::register("Normalize", $params['cividesk_subscribed'])) {
           CRM_Core_Session::setStatus(ts('Thanks, we will send you email updates related to this extension.'));
