@@ -18,9 +18,9 @@
  +--------------------------------------------------------------------------+
 */
 
-use com\google\i18n\phonenumbers\PhoneNumberUtil;
-use com\google\i18n\phonenumbers\PhoneNumberFormat;
-use com\google\i18n\phonenumbers\NumberParseException;
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\NumberParseException;
 
 require_once 'libphonenumber/PhoneNumberUtil.php';
 
