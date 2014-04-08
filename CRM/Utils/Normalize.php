@@ -151,6 +151,9 @@ class CRM_Utils_Normalize {
    */
 
   function normalize_phone(&$phone) {
+    if (empty($phone)) {
+      return false;
+    }
     $input = $phone['phone'];
     if (empty($input)) {
       return FALSE;
