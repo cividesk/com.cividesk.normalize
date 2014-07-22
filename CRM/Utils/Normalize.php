@@ -299,7 +299,7 @@ class CRM_Utils_Normalize {
             $normalization->normalize_phone($formattedPhoneValues);
 
             //do check for formatted difference, than only update.
-            $formattedDiff = array_diff($orgPhoneValues, $formattedPhoneValues);
+            $formattedDiff = array_diff_assoc($orgPhoneValues, $formattedPhoneValues);
             if (!empty($formattedDiff)) {
               $phoneUpdated = CRM_Core_BAO_Phone::add($formattedPhoneValues);
               if ($phoneUpdated->id) {
