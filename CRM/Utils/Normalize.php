@@ -95,7 +95,7 @@ class CRM_Utils_Normalize {
       'et', 'and', 'und', // For company names
     );
     $orgstatus = array(
-      'llc', 'ltd', 'inc', 'co', // USA
+      'llc', 'ltd', 'inc', 'co', 'corp', 'pllc', 'lllp', 'lp', 'llp', 'pc', // USA
       'sc', 'sci', 'sarl', // France
       'fze', 'fz', 'fz-llc', 'fz-co', 'rak', // UAE
       'usa', 'uae',
@@ -118,8 +118,9 @@ class CRM_Utils_Normalize {
             continue;
           }
           // Capitalize organization statuses
+          //in_array is case sensitive, lower case the $word
           if ((CRM_Utils_Array::value('contact_type', $contact) == 'Organization')
-            && in_array(str_replace(array('.'), '', $word), $orgstatus)
+            && in_array(str_replace(array('.'), '', strtolower($word)), $orgstatus)
           ) {
             $word = strtoupper($word);
           }
