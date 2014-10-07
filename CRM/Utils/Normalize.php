@@ -95,12 +95,13 @@ class CRM_Utils_Normalize {
       'et', 'and', 'und', // For company names
     );
     $orgstatus = array(
-      'llc', 'ltd', 'inc', 'co', 'corp', 'pllc', 'lllp', 'lp', 'llp', 'pc', // USA
+      'llc', 'ltd', 'pllc', 'lllp', 'lp', 'llp', 'pc', // USA
       'sc', 'sci', 'sarl', // France
       'fze', 'fz', 'fz-llc', 'fz-co', 'rak', // UAE
       'usa', 'uae',
     );
-
+    $orgstatusSpecial = array( 'inc', 'co', 'corp' );
+    
     if (CRM_Utils_Array::value('contact_FullFirst', $this->_settings)) {
       foreach ($this->_nameFields as $field) {
         $name = CRM_Utils_Array::value($field, $contact);
@@ -119,16 +120,20 @@ class CRM_Utils_Normalize {
           }
           // Capitalize organization statuses
           //in_array is case sensitive, lower case the $word
-          if ((CRM_Utils_Array::value('contact_type', $contact) == 'Organization')
-            && in_array(str_replace(array('.'), '', strtolower($word)), $orgstatus)
-          ) {
-            $word = strtoupper($word);
+          if ( CRM_Utils_Array::value('contact_type', $contact) == 'Organization') {
+            if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatus) ) {
+              $word = strtoupper($word);
+            } else if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatusSpecial) ) {
+              $word = strtolower($word);
+            }
           }
+          /*
           // Capitalize any character before a dot
           $pos = 0;
           while (($pos + 1 < strlen($word)) && ($pos = strpos($word, '.', $pos + 1))) {
             $word{$pos - 1} = strtoupper($word{$pos - 1});
           }
+          */
           // Finally, capitalize the first letter of word
           $words[$i] = ucfirst($word);
         }
