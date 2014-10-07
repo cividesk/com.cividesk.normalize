@@ -269,6 +269,7 @@ class CRM_Utils_Normalize {
           $formatNameValues[$field] = $nameValue;
         }
         if (!empty($formatNameValues)) {
+          $formatNameValues['contact_type'] = $orgContactValues['contact_type'];
           $formattedNameValues = $formatNameValues;
 
           //format name values
