@@ -114,10 +114,10 @@ function normalize_civicrm_pre( $op, $objectName, $objectId, &$objectRef ) {
   if (in_array($objectName, array('Individual','Organization','Household'))) {
     $normalize->normalize_contact($objectRef);
     // for CiviCRM 4.2.2 & lower only
-    if (is_array($objectRef['phone']))
+    if (array_key_exists('phone', $objectRef) && is_array($objectRef['phone']))
       foreach($objectRef['phone'] as &$phone)
         $normalize->normalize_phone($phone);
-    if (is_array($objectRef['address']))
+    if (array_key_exists('address', $objectRef) && is_array($objectRef['address']))
       foreach($objectRef['address'] as &$address)
         $normalize->normalize_address($address);
   } elseif ($objectName == 'Phone') {
