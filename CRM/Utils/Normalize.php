@@ -123,10 +123,9 @@ class CRM_Utils_Normalize {
           // Capitalize organization statuses
           if ( CRM_Utils_Array::value('contact_type', $contact) == 'Organization') {
             //in_array is case sensitive, lower case the $word            if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatus) ) {
-              $word = strtoupper($word);
-            } else if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatusSpecial) ) {
-              $word = str_replace(array('.'), '', strtolower($word)) . '.';
-            }
+            $word = strtoupper($word);
+          } else if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatusSpecial) ) {
+            $word = str_replace(array('.'), '', strtolower($word)) . '.';
           }
 
           // Finally, capitalize the first letter of word
