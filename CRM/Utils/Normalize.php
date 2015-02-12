@@ -52,7 +52,7 @@ class CRM_Utils_Normalize {
     $config = CRM_Core_Config::singleton();
     $this->_country = $config->defaultContactCountry();
 
-    $this->_nameFields = array('first_name', 'middle_name', 'last_name', 'organization_name');
+    $this->_nameFields = array('first_name', 'middle_name', 'last_name', 'organization_name', 'household_name');
     $this->_phoneFields = array('phone');
     $this->_addressFields = array('city', 'postal_code');
   }
@@ -93,6 +93,8 @@ class CRM_Utils_Normalize {
       'von', // Germany
       'ben', // Marocco
       'et', 'and', 'und', // For company names
+      'dos', 'das', 'do', 'du',
+      "s" // skip apostrophe s
     );
     // These will be capitalized
     $orgstatus = array(
@@ -103,35 +105,44 @@ class CRM_Utils_Normalize {
     );
     // These will be Firstcaped with a dot at the end
     $orgstatusSpecial = array( 'inc', 'co', 'corp', 'ltd' );
-    
+
+    $delimiters = array( "-", ".", "'","D'", "O'", "Mc", " ",);
+
     if (CRM_Utils_Array::value('contact_FullFirst', $this->_settings)) {
       foreach ($this->_nameFields as $field) {
         $name = CRM_Utils_Array::value($field, $contact);
         if (empty($name)) {
           continue;
         }
-        $words = explode(' ', str_replace('-', '- ', $name));
-        foreach ($words as $i => $word) {
-          // Preserve accronyms in organization names
-          if (CRM_Utils_Array::value('contact_type', $contact) != 'Organization') {
-            $word = strtolower($word);
+        ///$name = mb_convert_case($name, MB_CASE_TITLE, "UTF-8");
+        foreach ($delimiters as $delimiter) {
+          $words = explode($delimiter, $name);
+          $newWords = array();
+          foreach ($words as $word) {
+            if ( CRM_Utils_Array::value('contact_type', $contact) == 'Organization') {
+              // Capitalize organization statuses
+              // in_array is case sensitive, lower case the $word
+              if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatus) ) {
+                $word = strtoupper($word);
+              } else if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatusSpecial) ) {
+                // special status only need first letter to be capitalize
+                $word = str_replace(array('.'), '', strtolower($word)) . '.';
+              }
+            } elseif ( CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
+               // lower case few matching word for individual contact
+               if (in_array(strtolower($word), $handles)) {
+                 $word = strtolower($word);
+               }
+            }
+            if (!in_array($word, $handles)) {
+              $word = ucfirst($word);
+            }
+            array_push($newWords, $word);
           }
-          // Preserve words that are always lowercase
-          if (in_array($word, $handles)) {
-            continue;
-          }
-          // Capitalize organization statuses
-          if ( CRM_Utils_Array::value('contact_type', $contact) == 'Organization') {
-            //in_array is case sensitive, lower case the $word            if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatus) ) {
-            $word = strtoupper($word);
-          } else if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatusSpecial) ) {
-            $word = str_replace(array('.'), '', strtolower($word)) . '.';
-          }
-
-          // Finally, capitalize the first letter of word
-          $words[$i] = ucfirst($word);
+          $name = join($delimiter, $newWords);
         }
-        $contact[$field] = str_replace('- ', '-', implode(' ', $words));
+        $contact[$field] = $name;
+        
       }
     }
     if (CRM_Utils_Array::value('contact_OrgCaps', $this->_settings)) {
@@ -209,7 +220,7 @@ class CRM_Utils_Normalize {
 
     if (CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
       if ($city = CRM_Utils_Array::value('city', $address)) {
-        $address['city'] = strtoupper($city);
+        $address['city'] = ucwords(strtolower($city));
       }
     }
 
