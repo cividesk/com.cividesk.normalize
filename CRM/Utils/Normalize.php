@@ -217,9 +217,11 @@ class CRM_Utils_Normalize {
       'FR' => '/^(\d{5})$/i',
       'NL' => '/^(\d{4})\s*([a-z]{2})$/i',
     );
-
-    if (CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
-      if ($city = CRM_Utils_Array::value('city', $address)) {
+    if ($value = CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
+      $city = CRM_Utils_Array::value('city', $address);
+      if ($value == 1 && $city) {
+        $address['city'] = strtoupper($city);
+      } elseif($value == 2 && $city) {
         $address['city'] = ucwords(strtolower($city));
       }
     }

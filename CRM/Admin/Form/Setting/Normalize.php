@@ -60,10 +60,13 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       ts('Normalize local numbers as International')
     );
 
-    $element =& $this->add('checkbox',
-      'address_CityCaps',
-      ts('Capitalize city names')
+    $options = array(
+      'O' => ts('City no format'),
+      '1' => ts('Capitalize city names'),
+      '2' => ts('Capitalize first letter of each word in city names')
     );
+    $this->addRadio( 'address_CityCaps', ts(''), $options );
+    
     $element =& $this->add('checkbox',
       'address_Zip',
       ts('Normalize zip codes and flag incorrect entries')

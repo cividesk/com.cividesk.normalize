@@ -161,7 +161,7 @@ function _normalize_civix_civicrm_managed(&$entities) {
  */
 
 function _normalize_civix_insert_navigationMenu(&$menu, $path, $item, $parentId = null) {
-  static $navId;
+  global $navId;
 
   // If we are done going down the path, insert menu
   if (empty($path)) {
