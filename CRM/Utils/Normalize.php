@@ -60,11 +60,11 @@ class CRM_Utils_Normalize {
   /**
    * Returns normalizer settings
    */
-  static function getSettings() {
-    return CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME);
+  static function getSettings($name = NULL) {
+    return CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
   }
 
-  function setSetting($value, $name) {
+  static function setSetting($value, $name) {
     CRM_Core_BAO_Setting::setItem($value, CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
   }
 

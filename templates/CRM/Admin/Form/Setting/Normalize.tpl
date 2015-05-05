@@ -62,17 +62,6 @@
           <td class="label">&nbsp;</td>
           <td>{$form.address_Zip.html} {$form.address_Zip.label}</td>
         </tr>
-        {if $registered eq false}
-          <tr class="crm-cividesk-sync-googleapps-form-block">
-            <td class="label">{$form.register.label}</td>
-            <td>{$form.register.html}</td>
-          </tr>
-        {/if}
-        <tr class="crm-cividesk-sync-googleapps-form-block">
-          <td class="label">{$form.subscribed.label}</td>
-          <td>{$form.subscribed.html}</td>
-        </tr>
-
       </table>
       <div class="crm-submit-buttons">{include file="CRM/common/formButtons.tpl" location="bottom"}</div>
     </div>
@@ -106,6 +95,26 @@
             </td>
             <td>{$form.to_contact_id.html}</td>
           </tr>
+          <tr class="crm-cividesk-normalize-form-block">
+              <td class="label">
+                  {$form.batch_size.label}
+              </td>
+              <td>{$form.batch_size.html}</td>
+          </tr>
+          {if $smarty.get.state eq 'done'}
+          <tr class="crm-cividesk-normalize-form-block">
+              <td colspan="2">
+              <div class="help">
+                  {ts}Normalization completed with result counts as:{/ts}<br/>
+                  <table class="form-layout-compressed bold">
+                      <tr><td>{ts}Contact{/ts}:</td><td>{$stats.contact}</td></tr>
+                      <tr><td>{ts}Phone{/ts}:</td><td>{$stats.phone}</td></tr>
+                      <tr><td>{ts}Address{/ts}:</td><td>{$stats.address}</td></tr>
+                  </table>
+              </div>
+              </td>
+          </tr>
+          {/if}
           <tr class="crm-cividesk-normalize-form-block">
             <td></td>
             <td class="label">
