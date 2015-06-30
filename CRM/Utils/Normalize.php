@@ -91,7 +91,6 @@ class CRM_Utils_Normalize {
       'de', 'des', 'la', // France
       'da', 'den', 'der', 'ten', 'ter', 'van', // Neederlands
       'von', // Germany
-      'ben', // Marocco
       'et', 'and', 'und', // For company names
       'dos', 'das', 'do', 'du',
       "s" // skip apostrophe s
