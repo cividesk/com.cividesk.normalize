@@ -56,8 +56,12 @@
       <table class="form-layout-compressed">
         <tr class="crm-cividesk-normalize-form-block">
           <td class="label">Address</td>
-          <td>{$form.address_CityCaps.html} {$form.address_CityCaps.label}</td>
+          <td>{$form.address_StreetCaps.html}</td>
         </tr>
+        <tr class="crm-cividesk-normalize-form-block">
+          <td class="label">&nbsp;</td>
+          <td>{$form.address_CityCaps.html}</td>
+        </tr>        
         <tr class="crm-cividesk-normalize-form-block">
           <td class="label">&nbsp;</td>
           <td>{$form.address_Zip.html} {$form.address_Zip.label}</td>
