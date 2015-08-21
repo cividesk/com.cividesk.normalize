@@ -134,6 +134,7 @@ class CRM_Utils_Normalize {
                }
             }
             if (!in_array($word, $handles)) {
+              $word = strtolower($word);
               $word = ucfirst($word);
             }
             array_push($newWords, $word);
