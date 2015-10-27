@@ -139,6 +139,12 @@ class CRM_Utils_Normalize {
             array_push($newWords, $word);
           }
           $name = join($delimiter, $newWords);
+          if (CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
+            // if name is matching handles, then normalize it
+            if (in_array(strtolower($name), $handles)) {
+              $name = ucwords(strtolower($name));
+            }
+          }
         }
         $contact[$field] = $name;
         
