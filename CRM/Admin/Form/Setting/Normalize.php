@@ -89,7 +89,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       ts('Normalize zip codes and flag incorrect entries')
     );
 
-    if ( ! CRM_Utils_Array::value('cividesk_registered', $this->_values) ) {
+    if ( ! isset($this->_values) || ! CRM_Utils_Array::value('cividesk_registered', $this->_values) ) {
       $this->add('checkbox',
         'cividesk_register',
         ts('Register with Cividesk'));
@@ -172,7 +172,8 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
 
     // Save all settings
     foreach ($this->_elementIndex as $key => $dontcare) {
-      $prefix = reset(explode('_', $key));
+      $prefix = explode('_', $key);
+      $prefix = reset($prefix);
       if (in_array($prefix, array('contact', 'phone', 'address'))) {
         CRM_Utils_Normalize::setSetting(CRM_Utils_Array::value($key, $params, 0), $key);
       }
