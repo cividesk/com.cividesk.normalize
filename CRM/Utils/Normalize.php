@@ -246,7 +246,7 @@ class CRM_Utils_Normalize {
         $codes = CRM_Core_PseudoConstant::countryIsoCode();
         if ($regex = CRM_Utils_Array::value($codes[$cid], $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
-            $address['postal_code'] = $zip . ' ??';
+            CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', array(1 => $zip)));
           }
         }
       }

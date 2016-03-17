@@ -89,16 +89,6 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       ts('Normalize zip codes and flag incorrect entries')
     );
 
-    if ( ! isset($this->_values) || ! CRM_Utils_Array::value('cividesk_registered', $this->_values) ) {
-      $this->add('checkbox',
-        'cividesk_register',
-        ts('Register with Cividesk'));
-    }
-    $this->add('text',
-      'cividesk_subscribed',
-      ts('Send updates to'));
-    $this->addRule('cividesk_subscribed', ts('Please enter a valid email address.'), 'email');
-
     //added these element to process normalization.
     $this->addElement('text', "to_contact_id", ts("To Contact ID"));
     $this->addElement('text', "from_contact_id", ts("From Contact ID"));
