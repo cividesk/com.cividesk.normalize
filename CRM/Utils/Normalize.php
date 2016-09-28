@@ -104,7 +104,7 @@ class CRM_Utils_Normalize {
     );
     // These will be Firstcaped with a dot at the end
     $orgstatusSpecial = array( 'inc', 'co', 'corp', 'ltd' );
-
+    
     $delimiters = array( "-", ".", "'","D'", "O'", "Mc", " ",);
 
     if (CRM_Utils_Array::value('contact_FullFirst', $this->_settings)) {
@@ -222,6 +222,10 @@ class CRM_Utils_Normalize {
       'FR' => '/^(\d{5})$/i',
       'NL' => '/^(\d{4})\s*([a-z]{2})$/i',
     );
+    // These will be all-capped
+    $directionals = array(
+      'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'
+    );
     if ($value = CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
       $city = CRM_Utils_Array::value('city', $address);
       if ($value == 1 && $city) {
@@ -237,6 +241,11 @@ class CRM_Utils_Normalize {
           $address[$name] = strtoupper($addressValue);
         } elseif($value == 2 && $name) {
           $address[$name] = ucwords(strtolower($addressValue));
+          $patterns = array();
+          foreach ($directionals as $d) {
+            $patterns[] = "/\\b$d\\b/i";
+          }
+          $address[$name] = preg_replace_callback($patterns, function($matches){return strtoupper($matches[0]);}, $address[$name]);
         }
       }
     }
