@@ -80,7 +80,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     $optionsStreet = array(
       'O' => ts('Street Address no format'),
       '1' => ts('Capitalize Street Address'),
-      '2' => ts('Capitalize first letter of each word in Street Address')
+      '2' => ts('Capitalize first letter of each word in Street Address, and directionals such as NE, NW, etc.')
     );
     $this->addRadio( 'address_StreetCaps', ts(''), $optionsStreet );
     
