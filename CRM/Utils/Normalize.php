@@ -224,7 +224,7 @@ class CRM_Utils_Normalize {
     );
     // These will be all-capped
     $directionals = array(
-      'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'
+      'ne', 'nw', 'se', 'sw',
     );
     if ($value = CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
       $city = CRM_Utils_Array::value('city', $address);
