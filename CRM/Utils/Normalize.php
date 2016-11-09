@@ -110,7 +110,8 @@ class CRM_Utils_Normalize {
     if (CRM_Utils_Array::value('contact_FullFirst', $this->_settings)) {
       foreach ($this->_nameFields as $field) {
         $name = CRM_Utils_Array::value($field, $contact);
-        if (empty($name)) {
+        //Handle null value during Contact Merge
+        if (empty($name) || ($name === "null")) {
           continue;
         }
         ///$name = mb_convert_case($name, MB_CASE_TITLE, "UTF-8");
