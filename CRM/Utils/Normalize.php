@@ -52,7 +52,7 @@ class CRM_Utils_Normalize {
     $config = CRM_Core_Config::singleton();
     $this->_country = $config->defaultContactCountry();
 
-    $this->_nameFields = array('first_name', 'middle_name', 'last_name', 'organization_name', 'household_name');
+    $this->_nameFields = array('first_name', 'middle_name', 'last_name', 'organization_name', 'household_name', 'legal_name', 'nick_name');
     $this->_phoneFields = array('phone');
     $this->_addressFields = array('city', 'postal_code');
   }
@@ -95,6 +95,12 @@ class CRM_Utils_Normalize {
       'dos', 'das', 'do', 'du',
       "s" // skip apostrophe s
     );
+
+    // These will be small
+    $orgHandles = array(
+      'of'
+    );
+
     // These will be capitalized
     $orgstatus = array(
       'llc', 'llp', 'pllc', 'lp', 'pc', // USA
@@ -127,7 +133,10 @@ class CRM_Utils_Normalize {
               } else if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatusSpecial) ) {
                 // special status only need first letter to be capitalize
                 $word = str_replace(array('.'), '', strtolower($word)) . '.';
-              }
+              } else if (in_array(strtolower($word), $orgHandles)) {
+                 // lower case few matching word for Organization contact
+                 $word = strtolower($word);
+               }
             } elseif ( CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
                // lower case few matching word for individual contact
                if (in_array(strtolower($word), $handles)) {
