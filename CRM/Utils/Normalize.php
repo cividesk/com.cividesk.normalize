@@ -111,7 +111,7 @@ class CRM_Utils_Normalize {
     // These will be Firstcaped with a dot at the end
     $orgstatusSpecial = array( 'inc', 'co', 'corp', 'ltd' );
     
-    $delimiters = array( "-", ".", "'","D'", "O'", "Mc", " ",);
+    $delimiters = array( "-", ".", "D'", "O'", "Mc", " ",);
 
     if (CRM_Utils_Array::value('contact_FullFirst', $this->_settings)) {
       foreach ($this->_nameFields as $field) {
