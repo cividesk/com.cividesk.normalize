@@ -109,6 +109,9 @@ function normalize_civicrm_navigationMenu( &$params ) {
  * Implementation of hook_civicrm_pre
  */
 function normalize_civicrm_pre( $op, $objectName, $objectId, &$objectRef ) {
+  if ($objectName == 'Address' && $op == 'create' && !isset($objectRef['country_id'])) {
+    $objectRef['country_id'] = Civi::settings()->get('defaultContactCountry');
+  }
   $normalize = CRM_Utils_Normalize::singleton();
 
   if (in_array($objectName, array('Individual','Organization','Household'))) {
