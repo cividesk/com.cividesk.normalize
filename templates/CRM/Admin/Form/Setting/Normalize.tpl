@@ -66,10 +66,15 @@
           <td class="label">&nbsp;</td>
           <td>{$form.address_Zip.html} {$form.address_Zip.label}</td>
         </tr>
+        <tr class="crm-cividesk-normalize-form-block">
+          <td class="label"></td>
+          <td>{$form.address_postal_validation.label} {$form.address_postal_validation.html}</td>
+        </tr>
       </table>
       <div class="crm-submit-buttons">{include file="CRM/common/formButtons.tpl" location="bottom"}</div>
     </div>
   </fieldset>
+
   <fieldset>
     <legend>{ts}Apply{/ts}</legend>
     <div style="display:none;" class="crm-block crm-content-block crm-discount-view-form-block">

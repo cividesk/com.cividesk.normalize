@@ -231,7 +231,9 @@ class CRM_Utils_Normalize {
       'US' => '/^(\d{5})(-[0-9]{4})?$/i',
       'FR' => '/^(\d{5})$/i',
       'NL' => '/^(\d{4})\s*([a-z]{2})$/i',
+      'CA' => '/^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ])\ {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$/i'
     );
+
     // These will be all-capped
     $directionals = array(
       'ne', 'nw', 'se', 'sw',
@@ -259,19 +261,61 @@ class CRM_Utils_Normalize {
         }
       }
     }
+
     if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
       if (($zip = CRM_Utils_Array::value('postal_code', $address))
-          && ($cid = CRM_Utils_Array::value('country_id', $address))) {
+        && ($cid = CRM_Utils_Array::value('country_id', $address))) {
+
         $codes = CRM_Core_PseudoConstant::countryIsoCode();
         if ($regex = CRM_Utils_Array::value($codes[$cid], $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
-            CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', array(1 => $zip)));
+            // For Canada: Send email If Invalid Email Id
+            if(isset($codes[$cid]) && $codes[$cid] == 'CA') {
+              if (CRM_Utils_Array::value('address_postal_validation', $this->_settings)) {
+                // Get email Id from Normalize Admin page
+                $emailTo = CRM_Utils_Array::value('address_postal_validation', $this->_settings);
+                if (!empty($emailTo) && !empty($address['contact_id'])) {
+                  // Send Email
+                  $this->sendEmail($emailTo, $address['contact_id']);
+                }
+              }
+            } else {
+              CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', array(1 => $zip)));
+            }
+            // For Canada: Add space between postal code
+          } else {
+            if(isset($codes[$cid]) && $codes[$cid] == 'CA') { 
+	      //Check for Single Space and add Space If user not added	
+              $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
+              if(!preg_match($space_regex, $zip)) {
+                $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3); 
+              }
+            }
           }
         }
       }
     }
 
     return TRUE;
+  }
+
+  function sendEmail($emailTo,$contactId) {
+    list($domainEmailName, $domainEmailAddress) = CRM_Core_BAO_Domain::getNameAndEmail();
+    list($contact_name, $contact_email) = CRM_Contact_BAO_Contact::getContactDetails($contactId);
+    $mailBody = "<html><head></head><body>";
+    $mailBody .= "User <a href='{$_SERVER['HTTP_HOST']}/civicrm/contact/view?reset=1&cid={$contactId}'>{$contact_name} </a> has added invalid postal code <br/>";
+    $mailBody .= "</body></html>";
+
+    $mailParams = array(
+      'groupName' => 'empower notification',
+      'from' => '"' . $domainEmailName . '" <' . $domainEmailAddress . '>',
+      'subject' => 'Invalid Postal Code Added for contact :',
+      'text' => $mailBody,
+      'html' => $mailBody,
+    );
+    $mailParams['toName']  = $emailTo;
+    $mailParams['toEmail'] = $emailTo;
+    CRM_Utils_Mail::send($mailParams);
   }
 
   function getNameFields() {

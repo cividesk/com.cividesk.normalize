@@ -89,6 +89,10 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       ts('Normalize zip codes and flag incorrect entries')
     );
 
+    // Added element to send email for failure of Country Postal code
+    $this->add('text', 'address_postal_validation', ts('Enter email Id to notify admin for invalid postal code'));
+    //$this->addRule('cividesk_postal_validation', ts('Please enter a valid postal code.'), 'postal');
+
     //added these element to process normalization.
     $this->addElement('text', "to_contact_id", ts("To Contact ID"));
     $this->addElement('text', "from_contact_id", ts("From Contact ID"));
