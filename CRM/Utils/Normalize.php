@@ -267,6 +267,9 @@ class CRM_Utils_Normalize {
         && ($cid = CRM_Utils_Array::value('country_id', $address))) {
 
         $codes = CRM_Core_PseudoConstant::countryIsoCode();
+       // All ther zip code should be Uppercase regarless of there reg match 
+        $address['postal_code'] = strtoupper( $address['postal_code'] );
+
         if ($regex = CRM_Utils_Array::value($codes[$cid], $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
             // For Canada: Send email If Invalid Email Id
@@ -285,10 +288,10 @@ class CRM_Utils_Normalize {
             // For Canada: Add space between postal code
           } else {
             if(isset($codes[$cid]) && $codes[$cid] == 'CA') { 
-	      //Check for Single Space and add Space If user not added	
+	      // Check for Single Space and add Space If user not added	
               $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
               if(!preg_match($space_regex, $zip)) {
-                $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3); 
+                $address['postal_code'] =  strtoupper(substr($zip, 0, 3) . ' ' . substr($zip, 3)); 
               }
             }
           }
