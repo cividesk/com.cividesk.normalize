@@ -234,9 +234,13 @@ class CRM_Utils_Normalize {
       'CA' => '/^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ])\ {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$/i'
     );
 
+    // First let's get the country ISO code
+    $country = CRM_Utils_Array::value('country_id', $address) ? CRM_Core_PseudoConstant::countryIsoCode($address['country_id']) : NULL;
+
     // These will be all-capped
     $directionals = array(
-      'ne', 'nw', 'se', 'sw',
+      'US' => array('ne', 'nw', 'se', 'sw'),
+      'CA' => array('ne', 'nw', 'se', 'sw', 'po', 'rr'),
     );
     if ($value = CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
       $city = CRM_Utils_Array::value('city', $address);
@@ -254,38 +258,38 @@ class CRM_Utils_Normalize {
         } elseif($value == 2 && $name) {
           $address[$name] = ucwords(strtolower($addressValue));
           $patterns = array();
-          foreach ($directionals as $d) {
-            $patterns[] = "/\\b$d\\b/i";
+          if ($country && array_key_exists($country, $directionals)) {
+            foreach ($directionals[$country] as $d) {
+              $patterns[] = "/\\b$d\\b/i";
+            }
+            $address[$name] = preg_replace_callback($patterns, function ($matches) {
+              return strtoupper($matches[0]);
+            }, $address[$name]);
           }
-          $address[$name] = preg_replace_callback($patterns, function($matches){return strtoupper($matches[0]);}, $address[$name]);
         }
       }
     }
 
     if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
-      if (($zip = CRM_Utils_Array::value('postal_code', $address))
-        && ($cid = CRM_Utils_Array::value('country_id', $address))) {
-
-        $codes = CRM_Core_PseudoConstant::countryIsoCode();
-        if ($regex = CRM_Utils_Array::value($codes[$cid], $zip_formats)) {
+      if ($country && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
+        if ($regex = CRM_Utils_Array::value($country, $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
-            // For Canada: Send email If Invalid Email Id
-            if(isset($codes[$cid]) && $codes[$cid] == 'CA') {
-              if (CRM_Utils_Array::value('address_postal_validation', $this->_settings)) {
-                // Get email Id from Normalize Admin page
-                $emailTo = CRM_Utils_Array::value('address_postal_validation', $this->_settings);
-                if (!empty($emailTo) && !empty($address['contact_id'])) {
-                  // Send Email
-                  $this->sendEmail($emailTo, $address['contact_id']);
-                }
+            // Zip code is invalid for country
+            // 1. send an email if configured
+            if (CRM_Utils_Array::value('address_postal_validation', $this->_settings)) {
+              // Get email Id from Normalize Admin page
+              $emailTo = CRM_Utils_Array::value('address_postal_validation', $this->_settings);
+              if (!empty($emailTo) && !empty($address['contact_id'])) {
+                // Send Email
+                $this->sendEmail($emailTo, $address['contact_id']);
               }
-            } else {
-              CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', array(1 => $zip)));
             }
-            // For Canada: Add space between postal code
+            // 2. display an error message on screen
+            CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', array(1 => $zip)));
           } else {
-            if(isset($codes[$cid]) && $codes[$cid] == 'CA') { 
-	      //Check for Single Space and add Space If user not added	
+            // Zip code is valid
+            if ($country == 'CA') {
+              //Check for Single Space and add Space If user not added
               $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
               if(!preg_match($space_regex, $zip)) {
                 $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3); 
