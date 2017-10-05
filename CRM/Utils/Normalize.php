@@ -230,35 +230,28 @@ class CRM_Utils_Normalize {
     $zip_formats = array(
       'US' => '/^(\d{5})(-[0-9]{4})?$/i',
       'FR' => '/^(\d{5})$/i',
-      'NL' => '/^(\d{4})\s*([a-z]{2})$/i',
+      'NL' => '/^(\d{4})\s*([A-Z]{2})$/i',
       'CA' => '/^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ])\ {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$/i'
     );
 
     // First let's get the country ISO code
     $country = CRM_Utils_Array::value('country_id', $address) ? CRM_Core_PseudoConstant::countryIsoCode($address['country_id']) : NULL;
 
-    // These will be all-capped
+    // Reformat address lines
     $directionals = array(
       'US' => array('ne', 'nw', 'se', 'sw'),
       'CA' => array('ne', 'nw', 'se', 'sw', 'po', 'rr'),
     );
-    if ($value = CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
-      $city = CRM_Utils_Array::value('city', $address);
-      if ($value == 1 && $city) {
-        $address['city'] = strtoupper($city);
-      } elseif($value == 2 && $city) {
-        $address['city'] = ucwords(strtolower($city));
-      }
-    }
     if ($value = CRM_Utils_Array::value('address_StreetCaps', $this->_settings)) {
       foreach( array('street_address','supplemental_address_1', 'supplemental_address_2') as $name) { 
         $addressValue = CRM_Utils_Array::value($name, $address);
         if ($value == 1 && $addressValue) {
           $address[$name] = strtoupper($addressValue);
-        } elseif($value == 2 && $name) {
+        } elseif($value == 2 && $addressValue) {
           $address[$name] = ucwords(strtolower($addressValue));
-          $patterns = array();
+          // Capitalize directionals and other misc items
           if ($country && array_key_exists($country, $directionals)) {
+            $patterns = array();
             foreach ($directionals[$country] as $d) {
               $patterns[] = "/\\b$d\\b/i";
             }
@@ -270,7 +263,21 @@ class CRM_Utils_Normalize {
       }
     }
 
+    // Reformat city
+    if ($value = CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
+      $city = CRM_Utils_Array::value('city', $address);
+      if ($value == 1 && $city) {
+        $address['city'] = strtoupper($city);
+      } elseif($value == 2 && $city) {
+        $address['city'] = ucwords(strtolower($city));
+      }
+    }
+
+    // Reformat postal code
     if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
+      // http://www.pidm.net/postal%20code.html: there are currently no examples of postal codes written with lower-case letters
+      $address['postal_code'] = strtoupper($address['postal_code']);
+
       if ($country && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
         if ($regex = CRM_Utils_Array::value($country, $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
