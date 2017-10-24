@@ -61,7 +61,17 @@ class CRM_Utils_Normalize {
    * Returns normalizer settings
    */
   static function getSettings($name = NULL) {
-    return CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
+    if (!empty($name)) {
+      return CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
+    }
+    // group name not used anymore, so fetch only normalization related setting (also suppress warning)
+    $settingsField = array('contact_FullFirst', 'contact_OrgCaps', 'phone_normalize',
+      'phone_IntlPrefix', 'address_CityCaps', 'address_StreetCaps', 'address_Zip', 'normalization_stats');
+    $settings = array();
+    foreach ($settingsField as $fieldName) {
+      $settings[$fieldName] = CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $fieldName);
+    }
+    return $settings;
   }
 
   static function setSetting($value, $name) {
