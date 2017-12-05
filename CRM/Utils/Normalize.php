@@ -66,7 +66,7 @@ class CRM_Utils_Normalize {
     }
     // group name not used anymore, so fetch only normalization related setting (also suppress warning)
     $settingsField = array('contact_FullFirst', 'contact_OrgCaps', 'phone_normalize',
-      'phone_IntlPrefix', 'address_CityCaps', 'address_StreetCaps', 'address_Zip', 'normalization_stats');
+      'phone_IntlPrefix', 'address_CityCaps', 'address_StreetCaps', 'address_Zip', 'normalization_stats', 'address_postal_validation');
     $settings = array();
     foreach ($settingsField as $fieldName) {
       $settings[$fieldName] = CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $fieldName);
