@@ -287,7 +287,6 @@ class CRM_Utils_Normalize {
     if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
       // http://www.pidm.net/postal%20code.html: there are currently no examples of postal codes written with lower-case letters
       $address['postal_code'] = strtoupper($address['postal_code']);
-
       if ($country && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
         if ($regex = CRM_Utils_Array::value($country, $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
@@ -314,9 +313,85 @@ class CRM_Utils_Normalize {
             }
           }
         }
+
+        // Set the State/Province as per Zip code ONLY FOR CANADA
+        // Task : https://projects.cividesk.com/projects/28/tasks/858
+        if($country == 'CA') {
+          $first_char = strtoupper(substr($zip, 0, 1));
+          $three_char = strtoupper(substr($zip, 0, 3));
+          if (!empty($first_char)) {
+            switch ($first_char) {
+              case 'A':
+                //Newfoundland and Labrador - 1104
+                $address['state_province_id'] = 1104;
+                break;
+              case 'B':
+                //Nova Scotia - 1106
+                $address['state_province_id'] = 1106;
+                break;
+              case 'C':
+                //Prince Edwards Island - 1109
+                $address['state_province_id'] = 1109;
+                break;
+              case 'E':
+                //New Brunswick - 1103
+                $address['state_province_id'] = 1103;
+                break;
+              case 'G':
+              case 'H':
+              case 'J':
+                //Quebec - 1110
+                $address['state_province_id'] = 1110;
+                break;
+              case 'K':
+              case 'L':
+              case 'M':
+              case 'N':
+              case 'P':
+                //Ontario -  1108
+                $address['state_province_id'] = 1108;
+                break;
+              case 'R':
+                //Manitoba - 1102
+                $address['state_province_id'] = 1102;
+                break;
+              case 'S':
+                //Saskatchewan - 1111
+                $address['state_province_id'] = 1111;
+                break;
+              case 'T':
+                //Alberta - 1100
+                $address['state_province_id'] = 1100;
+                break;
+              case 'V':
+                //British Columbia - 1101
+                $address['state_province_id'] = 1101;
+                break;
+              case 'Y':
+                //Yukon Territories - 1112
+                $address['state_province_id'] = 1112;
+                break;
+            }
+          }
+          if (!empty($three_char)) {
+            switch ($three_char) {
+              case 'X0A':
+              case 'X0B':
+              case 'X0G':
+                //Nuvanut - 1107
+                $address['state_province_id'] = 1107;
+                break;
+              case 'X1A':
+              case 'X0E':
+              case 'X0G':
+                //Northwest Territories - 1105
+                $address['state_province_id'] = 1105;
+                break;
+            }
+          }
+        }
       }
     }
-
     return TRUE;
   }
 
