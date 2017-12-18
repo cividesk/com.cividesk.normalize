@@ -283,13 +283,15 @@ class CRM_Utils_Normalize {
       }
     }
 
-    // Reformat postal code
+    // Reformat postal code ONLY FOR CA
     if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
       // http://www.pidm.net/postal%20code.html: there are currently no examples of postal codes written with lower-case letters
       $address['postal_code'] = strtoupper($address['postal_code']);
-      if ($country && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
+
+      if ($country == 'CA' && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
         if ($regex = CRM_Utils_Array::value($country, $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
+
             // Zip code is invalid for country
             // 1. send an email if configured
             if (CRM_Utils_Array::value('address_postal_validation', $this->_settings)) {
@@ -304,12 +306,10 @@ class CRM_Utils_Normalize {
             CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', array(1 => $zip)));
           } else {
             // Zip code is valid
-            if ($country == 'CA') {
-              //Check for Single Space and add Space If user not added
-              $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
-              if(!preg_match($space_regex, $zip)) {
-                $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3); 
-              }
+            //Check for Single Space and add Space If user not added
+            $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
+            if(!preg_match($space_regex, $zip)) {
+              $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3);
             }
           }
         }
@@ -390,6 +390,7 @@ class CRM_Utils_Normalize {
             }
           }
         }
+
       }
     }
     return TRUE;
