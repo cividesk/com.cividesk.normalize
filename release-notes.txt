@@ -1,0 +1,9 @@
+Version 1.1 - 2018/07/20
+- Validation for Canada Zip code.
+- 4.7 compatibility fixes.
+- Special character handling.
+- Normalize Nick and Legal Name.
+- Normalize Batch Operation on contact range with progress bar.
+
+Version 1.0 - 2013/03/08
+- Initial release

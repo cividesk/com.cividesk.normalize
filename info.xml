@@ -3,13 +3,18 @@
   <file>normalize</file>
   <name>Cividesk Normalize</name>
   <description>Normalizes data prior to saving to database.</description>
+  <urls>
+    <url desc="Main Extension Page">https://github.com/cividesk/com.cividesk.normalize</url>
+    <url desc="Documentation">https://github.com/cividesk/com.cividesk.normalize/blob/master/README.md</url>
+    <url desc="Support">https://github.com/cividesk/com.cividesk.normalize/issues?state=open</url>
+  </urls>
   <license>GNU Affero General Public License, version 3</license>
   <maintainer>
     <author>Nicolas Ganivet</author>
     <email>nicolas@cividesk.com</email>
   </maintainer>
-  <releaseDate>2013-03-08</releaseDate>
-  <version>1.0</version>
+  <releaseDate>2018-07-20</releaseDate>
+  <version>1.1</version>
   <develStage>stable</develStage>
   <compatibility>
     <ver>4.2</ver>
