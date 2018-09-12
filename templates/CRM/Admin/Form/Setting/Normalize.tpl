@@ -32,6 +32,10 @@
           <td class="label">&nbsp;</td>
           <td>{$form.contact_OrgCaps.html} {$form.contact_OrgCaps.label}</td>
         </tr>
+        <tr class="crm-cividesk-normalize-form-block">
+          <td class="label">&nbsp;</td>
+          <td>{$form.contact_Gender.html} {$form.contact_Gender.label}</td>
+        </tr>
       </table>
       <table class="form-layout-compressed">
         {if $default_country}

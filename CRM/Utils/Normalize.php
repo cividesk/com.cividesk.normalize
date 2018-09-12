@@ -65,7 +65,7 @@ class CRM_Utils_Normalize {
       return CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
     }
     // group name not used anymore, so fetch only normalization related setting (also suppress warning)
-    $settingsField = array('contact_FullFirst', 'contact_OrgCaps', 'phone_normalize',
+    $settingsField = array('contact_FullFirst', 'contact_OrgCaps', 'contact_Gender', 'phone_normalize',
       'phone_IntlPrefix', 'address_CityCaps', 'address_StreetCaps', 'address_Zip', 'normalization_stats', 'address_postal_validation');
     $settings = array();
     foreach ($settingsField as $fieldName) {
@@ -122,6 +122,25 @@ class CRM_Utils_Normalize {
     $orgstatusSpecial = array( 'inc', 'co', 'corp', 'ltd' );
     
     $delimiters = array( "-", ".", "D'", "O'", "Mc", " ",);
+
+    // Set Gender Using Contact Prefix Value
+    if ($contact['contact_type'] == 'Individual' && CRM_Utils_Array::value('contact_Gender', $this->_settings)) {
+      $prefixValue = CRM_Utils_Array::value('prefix_id', $contact);
+      if ($prefixValue) {
+        // get key and name of prefix
+        $prefix = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id', array(), 'validate');
+        // get key and name of gender with flip
+        $gender =   CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'gender_id', array('flip' => 1), 'validate');
+
+        // Get Name from ID
+        $prefixName = $prefix[$prefixValue];
+        if ($prefixName && in_array($prefixName, array('Mr.')) && !empty($gender['Male'])) {
+          $contact['gender_id'] = $gender['Male'];
+        } else if ($prefixName && in_array($prefixName, array('Ms.', 'Mrs.')) && !empty($gender['Female'])) {
+          $contact['gender_id'] = $gender['Female'];
+        }
+      }
+    }
 
     if (CRM_Utils_Array::value('contact_FullFirst', $this->_settings)) {
       foreach ($this->_nameFields as $field) {

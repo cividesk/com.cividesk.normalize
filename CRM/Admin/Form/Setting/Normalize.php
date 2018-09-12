@@ -62,6 +62,11 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     );
 
     $this->add('checkbox',
+      'contact_Gender',
+      ts('Set Gender based on Contact Prefix.')
+    );
+
+    $this->add('checkbox',
       'phone_normalize',
       ts('Normalize phone numbers ('. $this->_country .', prefix intl with +)')
     );
