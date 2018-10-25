@@ -65,7 +65,7 @@ class CRM_Utils_Normalize {
       return CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
     }
     // group name not used anymore, so fetch only normalization related setting (also suppress warning)
-    $settingsField = array('contact_FullFirst', 'contact_OrgCaps', 'contact_Gender', 'phone_normalize',
+    $settingsField = array('contact_FullFirst', 'contact_LastnameToUpper', 'contact_OrgCaps', 'contact_Gender', 'phone_normalize',
       'phone_IntlPrefix', 'address_CityCaps', 'address_StreetCaps', 'address_Zip', 'normalization_stats', 'address_postal_validation');
     $settings = array();
     foreach ($settingsField as $fieldName) {
@@ -173,6 +173,10 @@ class CRM_Utils_Normalize {
                }
             }
             if (!in_array($word, $handles) && !in_array($word, $orgHandles)) {
+              // in case name does not contain special handler char, normalize with lower all char and then use ucfirst
+              if ( CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
+                $word = strtolower($word);
+              }
               $word = ucfirst($word);
             }
             array_push($newWords, $word);
@@ -188,6 +192,10 @@ class CRM_Utils_Normalize {
         $contact[$field] = $name;
         
       }
+    }
+    // upper case individual last name if setting is ON.
+    if ($contact['contact_type'] == 'Individual' && CRM_Utils_Array::value('contact_LastnameToUpper', $this->_settings)) {
+      $contact['last_name'] = strtoupper($contact['last_name']);
     }
     if (CRM_Utils_Array::value('contact_OrgCaps', $this->_settings)) {
       if ((CRM_Utils_Array::value('contact_type', $contact) == 'Organization')

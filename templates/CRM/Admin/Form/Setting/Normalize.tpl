@@ -30,6 +30,10 @@
         </tr>
         <tr class="crm-cividesk-normalize-form-block">
           <td class="label">&nbsp;</td>
+          <td>{$form.contact_LastnameToUpper.html} {$form.contact_LastnameToUpper.label}</td>
+        </tr>
+        <tr class="crm-cividesk-normalize-form-block">
+          <td class="label">&nbsp;</td>
           <td>{$form.contact_OrgCaps.html} {$form.contact_OrgCaps.label}</td>
         </tr>
         <tr class="crm-cividesk-normalize-form-block">

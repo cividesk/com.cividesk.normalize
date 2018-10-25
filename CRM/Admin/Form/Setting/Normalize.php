@@ -67,6 +67,11 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     );
 
     $this->add('checkbox',
+      'contact_LastnameToUpper',
+      ts('Capitalize individual last names.')
+    );
+
+    $this->add('checkbox',
       'phone_normalize',
       ts('Normalize phone numbers ('. $this->_country .', prefix intl with +)')
     );
