@@ -258,7 +258,7 @@ class CRM_Utils_Normalize {
         if ($value == 1 && $addressValue) {
           $address[$name] = strtoupper($addressValue);
         } elseif($value == 2 && $addressValue) {
-          $address[$name] = ucwords(strtolower($addressValue));
+          $address[$name] = $this->ucFirst($addressValue);
           // Capitalize directionals and other misc items
           if ($country && array_key_exists($country, $directionals)) {
             $patterns = array();
@@ -279,7 +279,7 @@ class CRM_Utils_Normalize {
       if ($value == 1 && $city) {
         $address['city'] = strtoupper($city);
       } elseif($value == 2 && $city) {
-        $address['city'] = ucwords(strtolower($city));
+        $address['city'] = $this->ucFirst($city);
       }
     }
 
@@ -425,6 +425,42 @@ class CRM_Utils_Normalize {
 
   function getPhoneFields() {
     return $this->_phoneFields;
+  }
+
+  /**
+   * Provides a ucfirst implementation with fixes for utf-8
+   * and a few special use-cases.
+   */
+  function ucFirst($string) {
+    // https://github.com/cividesk/com.cividesk.normalize/issues/5
+    $string = str_replace("’", "'", $string);
+
+    // Use mb_convert_case otherwise strings such as MONTRÉAL end up as MontrÉal
+    $string = mb_convert_case(mb_strtolower($string), MB_CASE_TITLE, "UTF-8");
+
+    // Fix strings such as O'Connor or L'Ancienne-Lorette (city)
+    // or names such as McEachran (street name in Montreal).
+    // We start by a quick check, to avoid doing the split/implode otherwise.
+    if (strpos($string, "'") !== FALSE || strpos($string, 'Mc')) {
+      $parts = explode(' ', $string);
+
+      foreach ($parts as &$part) {
+        if (!empty($part[1]) && $part[1] == "'") {
+          // O'connor -> O'Connor
+          $t = mb_strtoupper($part[2]);
+          $part[2] = $t;
+        }
+        elseif (!empty($part[2]) && substr($part, 0, 2) == 'Mc') {
+          // Mceachran -> McEachran
+          $t = mb_strtoupper($part[2]);
+          $part[2] = $t;
+        }
+      }
+
+      $string = implode(' ', $parts);
+    }
+
+    return $string;
   }
 
   static function processNormalization($fromContactId, $toContactId) {
