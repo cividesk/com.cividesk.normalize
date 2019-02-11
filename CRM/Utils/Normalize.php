@@ -316,6 +316,7 @@ class CRM_Utils_Normalize {
       $address['postal_code'] = strtoupper($address['postal_code']);
 
       if ($country == 'CA' && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
+        $zip = trim($zip);
         if ($regex = CRM_Utils_Array::value($country, $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
 
