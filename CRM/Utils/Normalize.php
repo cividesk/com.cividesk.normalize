@@ -49,8 +49,7 @@ class CRM_Utils_Normalize {
   public function __construct() {
     $this->_settings = $this->getSettings();
     // Get the default country information for phone/zip formatting
-    $config = CRM_Core_Config::singleton();
-    $this->_country = $config->defaultContactCountry();
+    $this->_country = CRM_Core_BAO_Country::defaultContactCountry();
 
     $this->_nameFields = array('first_name', 'middle_name', 'last_name', 'organization_name', 'household_name', 'legal_name', 'nick_name');
     $this->_phoneFields = array('phone');
