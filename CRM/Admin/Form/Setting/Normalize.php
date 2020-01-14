@@ -32,8 +32,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     if (!$this->_settings) $this->_settings = array();
 
     // Get the default country information for phone/zip formatting
-    $config = CRM_Core_Config::singleton();
-    $this->_country = $config->defaultContactCountry();
+    $this->_country = CRM_Core_BAO_Country::defaultContactCountry();
 
     $state = CRM_Utils_Request::retrieve('state', 'String', CRM_Core_DAO::$_nullObject, FALSE, 'tmp', 'GET');
     if ($state == 'done') {
