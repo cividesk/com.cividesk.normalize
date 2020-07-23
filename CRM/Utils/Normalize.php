@@ -176,7 +176,9 @@ class CRM_Utils_Normalize {
               if ( CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
                 $word = strtolower($word);
               }
-              $word = ucfirst($word);
+              //use these delimiters to capitalize
+              $word = ucwords($word, '-');
+              $word = ucwords($word, "'");
             }
             array_push($newWords, $word);
           }
