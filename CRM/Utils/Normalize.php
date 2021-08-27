@@ -195,7 +195,7 @@ class CRM_Utils_Normalize {
       }
     }
     // upper case individual last name if setting is ON.
-    if ($contact['contact_type'] == 'Individual' && CRM_Utils_Array::value('contact_LastnameToUpper', $this->_settings)) {
+    if (!empty($contact['last_name']) && $contact['contact_type'] == 'Individual' && CRM_Utils_Array::value('contact_LastnameToUpper', $this->_settings)) {
       $contact['last_name'] = strtoupper($contact['last_name']);
     }
     if (CRM_Utils_Array::value('contact_OrgCaps', $this->_settings)) {
