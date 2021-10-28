@@ -98,7 +98,7 @@ function normalize_civicrm_managed(&$entities) {
  */
 function normalize_civicrm_navigationMenu( &$params ) {
   // Add menu entry for extension administration page
-  _normalize_civix_insert_navigationMenu($params, 'Administer/Customize Data and Screens', array(
+  _normalize_civix_insert_navigation_menu($params, 'Administer/Customize Data and Screens', array(
     'name'       => 'Cividesk Normalize',
     'url'        => 'civicrm/admin/setting/normalize',
     'permission' => 'administer CiviCRM',
