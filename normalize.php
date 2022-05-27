@@ -23,10 +23,6 @@ require_once 'normalize.civix.php';
  * Implementation of hook_civicrm_config
  */
 function normalize_civicrm_config(&$config) {
-  $extRoot = dirname( __FILE__ ) . DIRECTORY_SEPARATOR;
-  if (is_dir($extRoot . 'packages')) {
-    set_include_path($extRoot . 'packages' . PATH_SEPARATOR . get_include_path());
-  }
   _normalize_civix_civicrm_config($config);
 }
 
