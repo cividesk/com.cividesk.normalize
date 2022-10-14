@@ -282,6 +282,8 @@ class CRM_Utils_Normalize {
       'US' => ['ne', 'nw', 'se', 'sw'],
       'CA' => ['ne', 'nw', 'se', 'sw', 'po', 'rr'],
     ];
+
+    $suffixes = ['st', 'th', 'nd', 'rd'];
     if ($value = CRM_Utils_Array::value('address_StreetCaps', $this->_settings)) {
       foreach (['street_address', 'supplemental_address_1', 'supplemental_address_2'] as $name) {
         $addressValue = CRM_Utils_Array::value($name, $address);
@@ -300,7 +302,24 @@ class CRM_Utils_Normalize {
               return strtoupper($matches[0]);
             }, $address[$name]);
           }
+
+          $patterns = [];
+          foreach ($suffixes as $suffix) {
+            $patterns[] = "/[0-9\.]+$suffix/i";
+          }
+
+          //numbers suffixes st, th, nd, rd should remain
+          //in small caps when directly against a number
+          $address[$name] = preg_replace_callback($patterns, function ($matches) {
+            return strtolower($matches[0]);
+          }, $address[$name]);
         }
+
+        //PO Box and P.O. Box should not be changed to Po or P.o. Box
+        $pattern = "/((?:P(?:OST)?.?\s*(?:O(?:FF(?:ICE)?)?)?.?\s*(?:B(?:IN|OX)?)+)+|(?:B(?:IN|OX)+\s+)+)\s*\d+/i";
+        $address[$name] =  preg_replace_callback($pattern, function ($matches) {
+          return str_replace("BOX", "Box", strtoupper($matches[0]));
+        }, $address[$name]);
       }
     }
 
