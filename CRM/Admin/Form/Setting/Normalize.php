@@ -92,7 +92,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       '2' => ts('Capitalize first letter of each word in Street Address, and directionals such as NE, NW, etc.')
     );
     $this->addRadio( 'address_StreetCaps', ts(''), $optionsStreet );
-    
+
     $this->add('checkbox',
       'address_Zip',
       ts('Normalize zip codes and flag incorrect entries')
@@ -106,9 +106,8 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     $this->addElement('text', "to_contact_id", ts("To Contact ID"));
     $this->addElement('text', "from_contact_id", ts("From Contact ID"));
     $this->addElement('text', "batch_size", ts("Batch Size..."));
-    $this->addFormRule(array('CRM_Admin_Form_Setting_Normalize', 'formRule'));    
-    
-    
+    $this->addFormRule(array('CRM_Admin_Form_Setting_Normalize', 'formRule'));
+
     $this->addButtons(array(
       array(
         'type' => 'submit',
@@ -178,7 +177,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       $prefix = explode('_', $key);
       $prefix = reset($prefix);
       if (in_array($prefix, array('contact', 'phone', 'address'))) {
-        CRM_Utils_Normalize::setSetting(CRM_Utils_Array::value($key, $params, 0), $key);
+        Civi::settings()->set($key, CRM_Utils_Array::value($key, $params, 0));
       }
     }
   } //end of function
@@ -191,7 +190,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       'reset' => TRUE,
     ));
 
-    CRM_Utils_Normalize::setSetting(array('contact' => 0, 'phone' => 0, 'address' => 0), 'normalization_stats');
+    Civi::settings()->set('normalization_stats', ['contact' => 0, 'phone' => 0, 'address' => 0]);
 
     for ($startId = $fromContactId; $startId <= $toContactId; $startId += $batchSize) {
       $endId = $startId + $batchSize - 1;
@@ -235,11 +234,11 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
   * Update the push stats setting.
   */
   static function updatePushStats($updates) {
-    $stats = CRM_Utils_Normalize::getSettings('normalization_stats');
+    $stats = Civi::settings()->get('normalization_stats');
     foreach ($updates as $name => $value) {
       $stats[$name] += $value;
     }
-    CRM_Utils_Normalize::setSetting($stats, 'normalization_stats');
+    Civi::settings()->set('normalization_stats', $stats);
   }
 
 } // end class

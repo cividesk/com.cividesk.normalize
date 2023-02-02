@@ -22,24 +22,22 @@ use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\NumberParseException;
 
-require_once 'libphonenumber/PhoneNumberUtil.php';
+require_once 'packages/libphonenumber/PhoneNumberUtil.php';
 
 class CRM_Utils_Normalize {
-  CONST NORMALIZE_PREFERENCES_NAME = 'Normalize Preferences';
 
   private static $_singleton = NULL;
-
   private $_settings;
   private $_country;
   private $_nameFields;
   private $_phoneFields;
   private $_addressFields;
 
-
   static function singleton() {
     if (!self::$_singleton) {
       self::$_singleton = new CRM_Utils_Normalize();
     }
+
     return self::$_singleton;
   }
 
@@ -51,9 +49,9 @@ class CRM_Utils_Normalize {
     // Get the default country information for phone/zip formatting
     $this->_country = CRM_Core_BAO_Country::defaultContactCountry();
 
-    $this->_nameFields = array('first_name', 'middle_name', 'last_name', 'organization_name', 'household_name', 'legal_name', 'nick_name');
-    $this->_phoneFields = array('phone');
-    $this->_addressFields = array('city', 'postal_code');
+    $this->_nameFields = ['first_name', 'middle_name', 'last_name', 'organization_name', 'household_name', 'legal_name', 'nick_name'];
+    $this->_phoneFields = ['phone'];
+    $this->_addressFields = ['city', 'postal_code'];
   }
 
   /**
@@ -61,20 +59,17 @@ class CRM_Utils_Normalize {
    */
   static function getSettings($name = NULL) {
     if (!empty($name)) {
-      return CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
+      return Civi::settings()->get($name);
     }
     // group name not used anymore, so fetch only normalization related setting (also suppress warning)
-    $settingsField = array('contact_FullFirst', 'contact_LastnameToUpper', 'contact_OrgCaps', 'contact_Gender', 'phone_normalize',
-      'phone_IntlPrefix', 'address_CityCaps', 'address_StreetCaps', 'address_Zip', 'normalization_stats', 'address_postal_validation');
-    $settings = array();
+    $settingsField = ['contact_FullFirst', 'contact_LastnameToUpper', 'contact_OrgCaps', 'contact_Gender', 'phone_normalize',
+      'phone_IntlPrefix', 'address_CityCaps', 'address_StreetCaps', 'address_Zip', 'normalization_stats', 'address_postal_validation'];
+    $settings = [];
     foreach ($settingsField as $fieldName) {
-      $settings[$fieldName] = CRM_Core_BAO_Setting::getItem(CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $fieldName);
+      $settings[$fieldName] = Civi::settings()->get($fieldName);
     }
-    return $settings;
-  }
 
-  static function setSetting($value, $name) {
-    CRM_Core_BAO_Setting::setItem($value, CRM_Utils_Normalize::NORMALIZE_PREFERENCES_NAME, $name);
+    return $settings;
   }
 
   /**
@@ -96,46 +91,47 @@ class CRM_Utils_Normalize {
    *   Name that needs to be normalized
    */
   function normalize_contact(&$contact) {
-    $handles = array(
+    $handles = [
       'de', 'des', 'la', // France
       'da', 'den', 'der', 'ten', 'ter', 'van', // Neederlands
       'von', // Germany
       'et', 'and', 'und', // For company names
       'dos', 'das', 'do', 'du',
       "s" // skip apostrophe s
-    );
+    ];
 
     // These will be small
-    $orgHandles = array(
+    $orgHandles = [
       'of'
-    );
+    ];
 
     // These will be capitalized
-    $orgstatus = array(
+    $orgstatus = [
       'llc', 'llp', 'pllc', 'lp', 'pc', // USA
       'sa', 'sarl', 'sc', 'sci', // France
       'fze', 'fz', 'fz-llc', 'fz-co', 'rak', // UAE
       'usa', 'uae',
-    );
+    ];
     // These will be Firstcaped with a dot at the end
-    $orgstatusSpecial = array( 'inc', 'co', 'corp', 'ltd' );
-    
-    $delimiters = array( "-", ".", "D'", "O'", "Mc", " ",);
+    $orgstatusSpecial = ['inc', 'co', 'corp', 'ltd'];
+
+    $delimiters = ["-", ".", "D'", "O'", "Mc", " ",];
 
     // Set Gender Using Contact Prefix Value
     if ($contact['contact_type'] == 'Individual' && CRM_Utils_Array::value('contact_Gender', $this->_settings)) {
       $prefixValue = CRM_Utils_Array::value('prefix_id', $contact);
       if ($prefixValue) {
         // get key and name of prefix
-        $prefix = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id', array(), 'validate');
+        $prefix = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id', [], 'validate');
         // get key and name of gender with flip
-        $gender =   CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'gender_id', array('flip' => 1), 'validate');
+        $gender = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'gender_id', ['flip' => 1], 'validate');
 
         // Get Name from ID
         $prefixName = $prefix[$prefixValue];
-        if ($prefixName && in_array($prefixName, array('Mr.')) && !empty($gender['Male'])) {
+        if ($prefixName && in_array($prefixName, ['Mr.']) && !empty($gender['Male'])) {
           $contact['gender_id'] = $gender['Male'];
-        } else if ($prefixName && in_array($prefixName, array('Ms.', 'Mrs.')) && !empty($gender['Female'])) {
+        }
+        elseif ($prefixName && in_array($prefixName, ['Ms.', 'Mrs.']) && !empty($gender['Female'])) {
           $contact['gender_id'] = $gender['Female'];
         }
       }
@@ -151,29 +147,32 @@ class CRM_Utils_Normalize {
         ///$name = mb_convert_case($name, MB_CASE_TITLE, "UTF-8");
         foreach ($delimiters as $delimiter) {
           $words = explode($delimiter, $name);
-          $newWords = array();
+          $newWords = [];
           foreach ($words as $word) {
-            if ( CRM_Utils_Array::value('contact_type', $contact) == 'Organization') {
+            if (CRM_Utils_Array::value('contact_type', $contact) == 'Organization') {
               // Capitalize organization statuses
               // in_array is case sensitive, lower case the $word
-              if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatus) ) {
+              if (in_array(str_replace(['.'], '', strtolower($word)), $orgstatus)) {
                 $word = strtoupper($word);
-              } else if ( in_array(str_replace(array('.'), '', strtolower($word)), $orgstatusSpecial) ) {
+              }
+              elseif (in_array(str_replace(['.'], '', strtolower($word)), $orgstatusSpecial)) {
                 // special status only need first letter to be capitalize
-                $word = str_replace(array('.'), '', strtolower($word)) . '.';
-              } else if (in_array(strtolower($word), $orgHandles)) {
-                 // lower case few matching word for Organization contact
-                 $word = strtolower($word);
-               }
-            } elseif ( CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
-               // lower case few matching word for individual contact
-               if (in_array(strtolower($word), $handles)) {
-                 $word = strtolower($word);
-               }
+                $word = str_replace(['.'], '', strtolower($word)) . '.';
+              }
+              elseif (in_array(strtolower($word), $orgHandles)) {
+                // lower case few matching word for Organization contact
+                $word = strtolower($word);
+              }
+            }
+            elseif (CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
+              // lower case few matching word for individual contact
+              if (in_array(strtolower($word), $handles)) {
+                $word = strtolower($word);
+              }
             }
             if (!in_array($word, $handles) && !in_array($word, $orgHandles)) {
               // in case name does not contain special handler char, normalize with lower all char and then use ucfirst
-              if ( CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
+              if (CRM_Utils_Array::value('contact_type', $contact) == 'Individual') {
                 $word = strtolower($word);
               }
               //use these delimiters to capitalize
@@ -191,7 +190,7 @@ class CRM_Utils_Normalize {
           }
         }
         $contact[$field] = $name;
-        
+
       }
     }
     // upper case individual last name if setting is ON.
@@ -205,6 +204,7 @@ class CRM_Utils_Normalize {
         $contact['organization_name'] = strtoupper($contact['organization_name']);
       }
     }
+
     return TRUE;
   }
 
@@ -216,7 +216,7 @@ class CRM_Utils_Normalize {
 
   function normalize_phone(&$phone) {
     if (empty($phone)) {
-      return false;
+      return FALSE;
     }
     $input = $phone['phone'];
     if (empty($input)) {
@@ -227,7 +227,8 @@ class CRM_Utils_Normalize {
     $phoneUtil = PhoneNumberUtil::getInstance();
     try {
       $phoneProto = $phoneUtil->parse($input, $country);
-    } catch (NumberParseException $e) {
+    }
+    catch (NumberParseException $e) {
       return FALSE;
     }
     if (!$phoneUtil->isValidNumber($phoneProto)) {
@@ -246,6 +247,7 @@ class CRM_Utils_Normalize {
         $phone['phone'] = $phoneUtil->format($phoneProto, PhoneNumberFormat::INTERNATIONAL);
       }
     }
+
     return TRUE;
   }
 
@@ -265,32 +267,34 @@ class CRM_Utils_Normalize {
    */
 
   function normalize_address(&$address) {
-    $zip_formats = array(
+    $zip_formats = [
       'US' => '/^(\d{5})(-[0-9]{4})?$/i',
       'FR' => '/^(\d{5})$/i',
       'NL' => '/^(\d{4})\s*([A-Z]{2})$/i',
       'CA' => '/^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ])\ {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$/i'
-    );
+    ];
 
     // First let's get the country ISO code
     $country = CRM_Utils_Array::value('country_id', $address) ? CRM_Core_PseudoConstant::countryIsoCode($address['country_id']) : NULL;
 
     // Reformat address lines
-    $directionals = array(
-      'US' => array('ne', 'nw', 'se', 'sw'),
-      'CA' => array('ne', 'nw', 'se', 'sw', 'po', 'rr'),
-    );
+    $directionals = [
+      'US' => ['ne', 'nw', 'se', 'sw'],
+      'CA' => ['ne', 'nw', 'se', 'sw', 'po', 'rr'],
+    ];
+
     $suffixes = ['st', 'th', 'nd', 'rd'];
     if ($value = CRM_Utils_Array::value('address_StreetCaps', $this->_settings)) {
-      foreach( array('street_address','supplemental_address_1', 'supplemental_address_2') as $name) { 
+      foreach (['street_address', 'supplemental_address_1', 'supplemental_address_2'] as $name) {
         $addressValue = CRM_Utils_Array::value($name, $address);
         if ($value == 1 && $addressValue) {
           $address[$name] = strtoupper($addressValue);
-        } elseif($value == 2 && $addressValue) {
+        }
+        elseif ($value == 2 && $addressValue) {
           $address[$name] = $this->ucFirst($addressValue);
           // Capitalize directionals and other misc items
           if ($country && array_key_exists($country, $directionals)) {
-            $patterns = array();
+            $patterns = [];
             foreach ($directionals[$country] as $d) {
               $patterns[] = "/\\b$d\\b/i";
             }
@@ -325,7 +329,8 @@ class CRM_Utils_Normalize {
       $city = CRM_Utils_Array::value('city', $address);
       if ($value == 1 && $city) {
         $address['city'] = strtoupper($city);
-      } elseif($value == 2 && $city) {
+      }
+      elseif ($value == 2 && $city) {
         $address['city'] = $this->ucFirst($city);
       }
     }
@@ -353,12 +358,13 @@ class CRM_Utils_Normalize {
               }
             }
             // 2. display an error message on screen
-            CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', array(1 => $zip)));
-          } else {
+            CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', [1 => $zip]));
+          }
+          else {
             // Zip code is valid
             //Check for Single Space and add Space If user not added
             $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
-            if(!preg_match($space_regex, $zip)) {
+            if (!preg_match($space_regex, $zip)) {
               $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3);
             }
           }
@@ -366,7 +372,7 @@ class CRM_Utils_Normalize {
 
         // Set the State/Province as per Zip code ONLY FOR CANADA
         // Task : https://projects.cividesk.com/projects/28/tasks/858
-        if($country == 'CA') {
+        if ($country == 'CA') {
           $first_char = strtoupper(substr($zip, 0, 1));
           $three_char = strtoupper(substr($zip, 0, 3));
           if (!empty($first_char)) {
@@ -443,24 +449,25 @@ class CRM_Utils_Normalize {
 
       }
     }
+
     return TRUE;
   }
 
-  function sendEmail($emailTo,$contactId) {
-    list($domainEmailName, $domainEmailAddress) = CRM_Core_BAO_Domain::getNameAndEmail();
-    list($contact_name, $contact_email) = CRM_Contact_BAO_Contact::getContactDetails($contactId);
+  function sendEmail($emailTo, $contactId) {
+    [$domainEmailName, $domainEmailAddress] = CRM_Core_BAO_Domain::getNameAndEmail();
+    [$contact_name, $contact_email] = CRM_Contact_BAO_Contact::getContactDetails($contactId);
     $mailBody = "<html><head></head><body>";
     $mailBody .= "User <a href='{$_SERVER['HTTP_HOST']}/civicrm/contact/view?reset=1&cid={$contactId}'>{$contact_name} </a> has added invalid postal code <br/>";
     $mailBody .= "</body></html>";
 
-    $mailParams = array(
+    $mailParams = [
       'groupName' => 'empower notification',
       'from' => '"' . $domainEmailName . '" <' . $domainEmailAddress . '>',
       'subject' => 'Invalid Postal Code Added for contact :',
       'text' => $mailBody,
       'html' => $mailBody,
-    );
-    $mailParams['toName']  = $emailTo;
+    ];
+    $mailParams['toName'] = $emailTo;
     $mailParams['toEmail'] = $emailTo;
     CRM_Utils_Mail::send($mailParams);
   }
@@ -514,7 +521,7 @@ class CRM_Utils_Normalize {
   }
 
   static function processNormalization($fromContactId, $toContactId) {
-    $processInfo = array('name' => 0, 'phone' => 0, 'address' => 0);
+    $processInfo = ['name' => 0, 'phone' => 0, 'address' => 0];
     if (empty($fromContactId) || empty($toContactId)) {
       return $processInfo;
     }
@@ -523,16 +530,16 @@ class CRM_Utils_Normalize {
 
     $normalization = CRM_Utils_Normalize::singleton();
 
-    $formattedContactIds = $formattedPhoneIds = $formattedAddressIds = array();
+    $formattedContactIds = $formattedPhoneIds = $formattedAddressIds = [];
     foreach ($contactIds as $contactId) {
       $contact = new CRM_Contact_DAO_Contact();
       $contact->id = $contactId;
       if ($contact->find()) {
-        $params = array('id' => $contactId, 'contact_id' => $contactId);
-        $orgContactValues = array();
+        $params = ['id' => $contactId, 'contact_id' => $contactId];
+        $orgContactValues = [];
         CRM_Contact_BAO_Contact::retrieve($params, $orgContactValues);
         //update contacts name fields.
-        $formatNameValues = array();
+        $formatNameValues = [];
         foreach ($normalization->getNameFields() as $field) {
           $nameValue = CRM_Utils_Array::value($field, $orgContactValues);
           if (empty($nameValue)) {
@@ -611,11 +618,11 @@ class CRM_Utils_Normalize {
       $contact->free();
     }
 
-    $processInfo = array(
+    $processInfo = [
       'name' => $formattedContactIds,
       'phone' => $formattedPhoneIds,
       'address' => $formattedAddressIds
-    );
+    ];
 
     return $processInfo;
   }
