@@ -18,6 +18,7 @@
  +--------------------------------------------------------------------------+
 */
 
+use CRM_Normalize_ExtensionUtil as E;
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\NumberParseException;
@@ -45,7 +46,7 @@ class CRM_Utils_Normalize {
    * Construct a normalizer
    */
   public function __construct() {
-    $this->_settings = $this->getSettings();
+    $this->_settings = self::getSettings();
     // Get the default country information for phone/zip formatting
     $this->_country = CRM_Core_BAO_Country::defaultContactCountry();
 
@@ -90,7 +91,7 @@ class CRM_Utils_Normalize {
    * @param $contact
    *   Name that needs to be normalized
    */
-  function normalize_contact(&$contact) {
+  public function normalize_contact(&$contact) {
     $handles = [
       'de', 'des', 'la', // France
       'da', 'den', 'der', 'ten', 'ter', 'van', // Neederlands
@@ -214,7 +215,7 @@ class CRM_Utils_Normalize {
    *   Name that needs to be reformatted
    */
 
-  function normalize_phone(&$phone) {
+  public function normalize_phone(&$phone) {
     if (empty($phone)) {
       return FALSE;
     }
@@ -252,26 +253,18 @@ class CRM_Utils_Normalize {
   }
 
   /**
-   * Normalizes a name according to International rules - as much as we can
-   * Example of normalized Individual names:
-   * jean-pierre DE castignac => Jean-Pierre de Castignac
-   * Example of normalized Organization names:
-   * it bliss, llc => It Bliss, Llc
-   * IT bliss, LLC => IT Bliss, LLC
-   * @param $name
-   *   Name that needs to be normalized
-   * @param $type
-   *   Individual or Organization
-   * @param $this ->_settings
-   *   Options for the conversion
+   * Normalizes an address
+   * @param $address
+   *   An array representing the address that needs to be reformatted
+   * @return TRUE
    */
-
-  function normalize_address(&$address) {
+  public function normalize_address(&$address) {
     $zip_formats = [
       'US' => '/^(\d{5})(-[0-9]{4})?$/i',
       'FR' => '/^(\d{5})$/i',
       'NL' => '/^(\d{4})\s*([A-Z]{2})$/i',
-      'CA' => '/^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ])\ {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$/i'
+      'CA' => '/^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ])\ {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$/i',
+      'IT' => '/^(\d{5})$/i',
     ];
 
     // First let's get the country ISO code
@@ -335,15 +328,17 @@ class CRM_Utils_Normalize {
       }
     }
 
-    // Reformat postal code ONLY FOR CA
-    if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
-      // http://www.pidm.net/postal%20code.html: there are currently no examples of postal codes written with lower-case letters
-      if ($address['postal_code']) {
-        $address['postal_code'] = strtoupper($address['postal_code']);
-      }
-
-      if ($country == 'CA' && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
+    if (CRM_Utils_Array::value('address_Zip', $this->_settings) && $country && array_key_exists($country, $zip_formats)) {
+      if ($zip = CRM_Utils_Array::value('postal_code', $address)) {
         $zip = trim($zip);
+        // http://www.pidm.net/postal%20code.html: there are currently no examples of postal codes written with lower-case letters
+        $address['postal_code'] = strtoupper($zip);
+
+          // Check if exists a method to normalize address for a specific country
+        if (method_exists($this, 'normalize_address_' . $country)) {
+          $this->{'normalize_address_' . $country}($address);
+        }
+
         if ($regex = CRM_Utils_Array::value($country, $zip_formats)) {
           if (!preg_match($regex, $zip, $matches)) {
 
@@ -358,112 +353,26 @@ class CRM_Utils_Normalize {
               }
             }
             // 2. display an error message on screen
-            CRM_Core_Session::setStatus(ts('Invalid Zip Code format %1', [1 => $zip]));
-          }
-          else {
-            // Zip code is valid
-            //Check for Single Space and add Space If user not added
-            $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
-            if (!preg_match($space_regex, $zip)) {
-              $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3);
-            }
+            CRM_Core_Session::setStatus(E::ts('Invalid Zip Code format %1', [1 => $zip]));
           }
         }
-
-        // Set the State/Province as per Zip code ONLY FOR CANADA
-        // Task : https://projects.cividesk.com/projects/28/tasks/858
-        if ($country == 'CA') {
-          $first_char = strtoupper(substr($zip, 0, 1));
-          $three_char = strtoupper(substr($zip, 0, 3));
-          if (!empty($first_char)) {
-            switch ($first_char) {
-              case 'A':
-                //Newfoundland and Labrador - 1104
-                $address['state_province_id'] = 1104;
-                break;
-              case 'B':
-                //Nova Scotia - 1106
-                $address['state_province_id'] = 1106;
-                break;
-              case 'C':
-                //Prince Edwards Island - 1109
-                $address['state_province_id'] = 1109;
-                break;
-              case 'E':
-                //New Brunswick - 1103
-                $address['state_province_id'] = 1103;
-                break;
-              case 'G':
-              case 'H':
-              case 'J':
-                //Quebec - 1110
-                $address['state_province_id'] = 1110;
-                break;
-              case 'K':
-              case 'L':
-              case 'M':
-              case 'N':
-              case 'P':
-                //Ontario -  1108
-                $address['state_province_id'] = 1108;
-                break;
-              case 'R':
-                //Manitoba - 1102
-                $address['state_province_id'] = 1102;
-                break;
-              case 'S':
-                //Saskatchewan - 1111
-                $address['state_province_id'] = 1111;
-                break;
-              case 'T':
-                //Alberta - 1100
-                $address['state_province_id'] = 1100;
-                break;
-              case 'V':
-                //British Columbia - 1101
-                $address['state_province_id'] = 1101;
-                break;
-              case 'Y':
-                //Yukon Territories - 1112
-                $address['state_province_id'] = 1112;
-                break;
-            }
-          }
-          if (!empty($three_char)) {
-            switch ($three_char) {
-              case 'X0A':
-              case 'X0B':
-              case 'X0G':
-                //Nuvanut - 1107
-                $address['state_province_id'] = 1107;
-                break;
-              case 'X1A':
-              case 'X0E':
-              case 'X0G':
-                //Northwest Territories - 1105
-                $address['state_province_id'] = 1105;
-                break;
-            }
-          }
-        }
-
       }
     }
 
     return TRUE;
   }
 
-  function sendEmail($emailTo, $contactId) {
+  protected function sendEmail($emailTo, $contactId) {
     [$domainEmailName, $domainEmailAddress] = CRM_Core_BAO_Domain::getNameAndEmail();
     [$contact_name, $contact_email] = CRM_Contact_BAO_Contact::getContactDetails($contactId);
-    $mailBody = "<html><head></head><body>";
-    $mailBody .= "User <a href='{$_SERVER['HTTP_HOST']}/civicrm/contact/view?reset=1&cid={$contactId}'>{$contact_name} </a> has added invalid postal code <br/>";
-    $mailBody .= "</body></html>";
+    $mailBody = '<html><head></head><body>';
+    $mailBody .= sprintf(E::ts('User %s has added invalid postal code'), CRM_Utils_System::href($contact_name, 'civicrm/contact/view', "reset=1&cid={$contactId}"));
+    $mailBody .= '</body></html>';
 
     $mailParams = [
       'groupName' => 'empower notification',
       'from' => '"' . $domainEmailName . '" <' . $domainEmailAddress . '>',
-      'subject' => 'Invalid Postal Code Added for contact :',
+      'subject' => sprintf(E::ts('Invalid Postal Code Added for contact %s'), $contact_name),
       'text' => $mailBody,
       'html' => $mailBody,
     ];
@@ -472,15 +381,15 @@ class CRM_Utils_Normalize {
     CRM_Utils_Mail::send($mailParams);
   }
 
-  function getNameFields() {
+  public function getNameFields() {
     return $this->_nameFields;
   }
 
-  function getAddressFields() {
+  public function getAddressFields() {
     return $this->_addressFields;
   }
 
-  function getPhoneFields() {
+  public function getPhoneFields() {
     return $this->_phoneFields;
   }
 
@@ -488,7 +397,7 @@ class CRM_Utils_Normalize {
    * Provides a ucfirst implementation with fixes for utf-8
    * and a few special use-cases.
    */
-  function ucFirst($string) {
+  protected function ucFirst($string) {
     // https://github.com/cividesk/com.cividesk.normalize/issues/5
     $string = str_replace("’", "'", $string);
 
@@ -625,5 +534,110 @@ class CRM_Utils_Normalize {
     ];
 
     return $processInfo;
+  }
+
+  /**
+   * Normalize address for Canada.
+   * Adds a space in the postal code if user didn't add it.
+   * Sets the State/Province as per Zip code
+   * @param array $address
+   *   The address to normalize.
+   */
+  protected function normalize_address_CA(&$address) {
+    $zip = CRM_Utils_Array::value('postal_code', $address);
+
+    //Check for Single Space and add Space If user not added
+    $space_regex = '/^([a-zA-Z]\d[a-zA-Z][ -])?(\d[a-zA-Z]\d)$/';
+    if (!preg_match($space_regex, $zip)) {
+      $address['postal_code'] = substr($zip, 0, 3) . ' ' . substr($zip, 3);
+    }
+
+    // Set the State/Province as per Zip code
+    // Task : https://projects.cividesk.com/projects/28/tasks/858
+
+    $first_char = strtoupper(substr($zip, 0, 1));
+    $three_char = strtoupper(substr($zip, 0, 3));
+    if (!empty($first_char)) {
+      switch ($first_char) {
+        case 'A':
+          //Newfoundland and Labrador - 1104
+          $address['state_province_id'] = 1104;
+          break;
+        case 'B':
+          //Nova Scotia - 1106
+          $address['state_province_id'] = 1106;
+          break;
+        case 'C':
+          //Prince Edwards Island - 1109
+          $address['state_province_id'] = 1109;
+          break;
+        case 'E':
+          //New Brunswick - 1103
+          $address['state_province_id'] = 1103;
+          break;
+        case 'G':
+        case 'H':
+        case 'J':
+          //Quebec - 1110
+          $address['state_province_id'] = 1110;
+          break;
+        case 'K':
+        case 'L':
+        case 'M':
+        case 'N':
+        case 'P':
+          //Ontario -  1108
+          $address['state_province_id'] = 1108;
+          break;
+        case 'R':
+          //Manitoba - 1102
+          $address['state_province_id'] = 1102;
+          break;
+        case 'S':
+          //Saskatchewan - 1111
+          $address['state_province_id'] = 1111;
+          break;
+        case 'T':
+          //Alberta - 1100
+          $address['state_province_id'] = 1100;
+          break;
+        case 'V':
+          //British Columbia - 1101
+          $address['state_province_id'] = 1101;
+          break;
+        case 'Y':
+          //Yukon Territories - 1112
+          $address['state_province_id'] = 1112;
+          break;
+      }
+    }
+    if (!empty($three_char)) {
+      switch ($three_char) {
+        case 'X0A':
+        case 'X0B':
+        case 'X0G':
+          //Nuvanut - 1107
+          $address['state_province_id'] = 1107;
+          break;
+        case 'X1A':
+        case 'X0E':
+        case 'X0G':
+          //Northwest Territories - 1105
+          $address['state_province_id'] = 1105;
+          break;
+      }
+    }
+  }
+
+  /**
+   * Normalize address for Italy.
+   * Remove any spaces in the postal code.
+   *
+   * @param array $address
+   *   The address to normalize.
+   */
+  protected function normalize_address_IT(&$address) {
+    $zip = CRM_Utils_Array::value('postal_code', $address);
+    $address['postal_code'] = str_replace(' ', '', $zip);
   }
 }
