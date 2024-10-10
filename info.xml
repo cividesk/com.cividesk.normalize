@@ -13,8 +13,8 @@
     <author>Nicolas Ganivet</author>
     <email>nicolas@cividesk.com</email>
   </maintainer>
-  <releaseDate>2018-07-20</releaseDate>
-  <version>1.1</version>
+  <releaseDate>2024-08-29</releaseDate>
+  <version>1.2</version>
   <develStage>stable</develStage>
   <compatibility>
     <ver>5.27</ver>
@@ -25,5 +25,14 @@
   <comments>This module is very configurable - choose which data you want to normalize and how! Settings are accessed from the 'Administer / Customize Data and Screens / Cividesk Normalize' menu.</comments>
   <civix>
     <namespace>CRM/Normalize</namespace>
+    <format>23.02.1</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.3</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
 </extension>
