@@ -118,7 +118,7 @@ class CRM_Utils_Normalize {
     $delimiters = ["-", ".", "D'", "O'", "Mc", " ",];
 
     // Set Gender Using Contact Prefix Value
-    if ($contact['contact_type'] == 'Individual' && CRM_Utils_Array::value('contact_Gender', $this->_settings)) {
+    if (($contact['contact_type'] ?? null) === 'Individual' && CRM_Utils_Array::value('contact_Gender', $this->_settings)) {  
       $prefixValue = CRM_Utils_Array::value('prefix_id', $contact);
       if ($prefixValue) {
         // get key and name of prefix
@@ -338,7 +338,7 @@ class CRM_Utils_Normalize {
     // Reformat postal code ONLY FOR CA
     if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
       // http://www.pidm.net/postal%20code.html: there are currently no examples of postal codes written with lower-case letters
-      if ($address['postal_code']) {
+      if (!empty($address['postal_code'])) {
         $address['postal_code'] = strtoupper($address['postal_code']);
       }
 
