@@ -119,7 +119,7 @@ class CRM_Utils_Normalize {
 
     // Set Gender Using Contact Prefix Value
     if (($contact['contact_type'] ?? null) === 'Individual' && CRM_Utils_Array::value('contact_Gender', $this->_settings)) {  
-      $prefixValue = CRM_Utils_Array::value('prefix_id', $contact);
+      $prefixValue = $contact['prefix_id'] ?? NULL;
       if ($prefixValue) {
         // get key and name of prefix
         $prefix = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id', [], 'validate');
@@ -137,9 +137,9 @@ class CRM_Utils_Normalize {
       }
     }
 
-    if (CRM_Utils_Array::value('contact_FullFirst', $this->_settings)) {
+    if (!empty($this->_settings['contact_FullFirst'])) {
       foreach ($this->_nameFields as $field) {
-        $name = CRM_Utils_Array::value($field, $contact);
+        $name = $contact[$field] ?? NULL;
         //Handle null value during Contact Merge
         if (empty($name) || ($name === "null")) {
           continue;
@@ -197,7 +197,7 @@ class CRM_Utils_Normalize {
     if (!empty($contact['last_name']) && $contact['contact_type'] == 'Individual' && CRM_Utils_Array::value('contact_LastnameToUpper', $this->_settings)) {
       $contact['last_name'] = strtoupper($contact['last_name']);
     }
-    if (CRM_Utils_Array::value('contact_OrgCaps', $this->_settings)) {
+    if (!empty($this->_settings['contact_OrgCaps'])) {
       if ((CRM_Utils_Array::value('contact_type', $contact) == 'Organization')
         && CRM_Utils_Array::value('organization_name', $contact)
       ) {
@@ -275,7 +275,7 @@ class CRM_Utils_Normalize {
     ];
 
     // First let's get the country ISO code
-    $country = CRM_Utils_Array::value('country_id', $address) ? CRM_Core_PseudoConstant::countryIsoCode($address['country_id']) : NULL;
+    $country = !empty($address['country_id']) ? CRM_Core_PseudoConstant::countryIsoCode($address['country_id']) : NULL;
 
     // Reformat address lines
     $directionals = [
@@ -284,9 +284,9 @@ class CRM_Utils_Normalize {
     ];
 
     $suffixes = ['st', 'th', 'nd', 'rd'];
-    if ($value = CRM_Utils_Array::value('address_StreetCaps', $this->_settings)) {
+    if ($value = $this->_settings['address_StreetCaps'] ?? NULL) {
       foreach (['street_address', 'supplemental_address_1', 'supplemental_address_2'] as $name) {
-        $addressValue = CRM_Utils_Array::value($name, $address);
+        $addressValue = $address[$name] ?? NULL;
         if ($value == 1 && $addressValue) {
           $address[$name] = strtoupper($addressValue);
         }
@@ -325,8 +325,8 @@ class CRM_Utils_Normalize {
     }
 
     // Reformat city
-    if ($value = CRM_Utils_Array::value('address_CityCaps', $this->_settings)) {
-      $city = CRM_Utils_Array::value('city', $address);
+    if ($value = $this->_settings['address_CityCaps'] ?? NULL) {
+      $city = $address['city'] ?? NULL;
       if ($value == 1 && $city) {
         $address['city'] = strtoupper($city);
       }
@@ -336,7 +336,7 @@ class CRM_Utils_Normalize {
     }
 
     // Reformat postal code ONLY FOR CA
-    if (CRM_Utils_Array::value('address_Zip', $this->_settings)) {
+    if (!empty($this->_settings['address_Zip'])) {
       
       // http://www.pidm.net/postal%20code.html: there are currently no examples of postal codes written with lower-case letters
       
@@ -344,16 +344,16 @@ class CRM_Utils_Normalize {
         $address['postal_code'] = strtoupper($address['postal_code']);
       }
 
-      if ($country == 'CA' && ($zip = CRM_Utils_Array::value('postal_code', $address))) {
+      if ($country == 'CA' && ($zip = $address['postal_code'] ?? NULL)) {
         $zip = trim($zip);
-        if ($regex = CRM_Utils_Array::value($country, $zip_formats)) {
+        if ($regex = $zip_formats[$country] ?? NULL) {
           if (!preg_match($regex, $zip, $matches)) {
 
             // Zip code is invalid for country
             // 1. send an email if configured
-            if (CRM_Utils_Array::value('address_postal_validation', $this->_settings)) {
+            if (!empty($this->_settings['address_postal_validation'])) {
               // Get email Id from Normalize Admin page
-              $emailTo = CRM_Utils_Array::value('address_postal_validation', $this->_settings);
+              $emailTo = $this->_settings['address_postal_validation'] ?? NULL;
               if (!empty($emailTo) && !empty($address['contact_id'])) {
                 // Send Email
                 $this->sendEmail($emailTo, $address['contact_id']);
@@ -543,7 +543,7 @@ class CRM_Utils_Normalize {
         //update contacts name fields.
         $formatNameValues = [];
         foreach ($normalization->getNameFields() as $field) {
-          $nameValue = CRM_Utils_Array::value($field, $orgContactValues);
+          $nameValue = $orgContactValues[$field] ?? NULL;
           if (empty($nameValue)) {
             continue;
           }

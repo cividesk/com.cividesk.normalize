@@ -41,7 +41,7 @@ class CRM_Core_Cividesk {
         'organization_name' => $domain['name'],
         'description' => $domain['description'] );
       foreach (array('street_address', 'supplemental_address_1', 'supplemental_address_2', 'city', 'postal_code', 'state_province_id', 'country_id') as $field)
-        $registration[$field] = CRM_Utils_Array::value($field, $domain['address']);
+        $registration[$field] = $domain['address'][$field] ?? NULL;
       $registration['phone'] = $domain['phone']['phone'];
       $registration['email'] = $domain['email']['email'];
 
