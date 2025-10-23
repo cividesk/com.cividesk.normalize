@@ -11,7 +11,7 @@
  */
 function civicrm_api3_contact_normalize($params) {
   $normalize = CRM_Utils_Normalize::singleton();
-  $contacts = CRM_Utils_Array::value('values', $params);
+  $contacts = $params['values'] ?? NULL;
   if (sizeof($contacts)) {
     foreach ($contacts as &$contact) {
       $normalize->normalize_contact($contact);
