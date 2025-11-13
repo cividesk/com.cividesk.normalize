@@ -72,7 +72,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
 
     $this->add('checkbox',
       'phone_normalize',
-      ts('Normalize phone numbers ('. $this->_country .', prefix intl with +)')
+      ts('Normalize phone numbers (%1, prefix intl with +)', [1 => $this->_country])
     );
     $this->add('checkbox',
       'phone_IntlPrefix',
@@ -84,14 +84,14 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       '1' => ts('Capitalize city names'),
       '2' => ts('Capitalize first letter of each word in city names')
     );
-    $this->addRadio( 'address_CityCaps', ts(''), $options );
+    $this->addRadio( 'address_CityCaps', '', $options );
 
     $optionsStreet = array(
       'O' => ts('Street Address no format'),
       '1' => ts('Capitalize Street Address'),
       '2' => ts('Capitalize first letter of each word in Street Address, and directionals such as NE, NW, etc.')
     );
-    $this->addRadio( 'address_StreetCaps', ts(''), $optionsStreet );
+    $this->addRadio( 'address_StreetCaps', '', $optionsStreet );
 
     $this->add('checkbox',
       'address_Zip',
