@@ -48,11 +48,11 @@ function normalize_civicrm_enable() {
  */
 function normalize_civicrm_navigationMenu( &$params ) {
   // Add menu entry for extension administration page
-  _normalize_civix_insert_navigation_menu($params, 'Administer/Customize Data and Screens', array(
+  _normalize_civix_insert_navigation_menu($params, 'Administer/Customize Data and Screens', [
     'name'       => 'Cividesk Normalize',
     'url'        => 'civicrm/admin/setting/normalize',
     'permission' => 'administer CiviCRM',
-  ));
+  ]);
 }
 
 /**
@@ -61,7 +61,7 @@ function normalize_civicrm_navigationMenu( &$params ) {
 function normalize_civicrm_pre( $op, $objectName, $objectId, &$objectRef ) {
   $normalize = CRM_Utils_Normalize::singleton();
 
-  if (in_array($objectName, array('Individual','Organization','Household'))) {
+  if (in_array($objectName, ['Individual','Organization','Household'])) {
     $normalize->normalize_contact($objectRef);
     // for CiviCRM 4.2.2 & lower only
     if (array_key_exists('phone', $objectRef) && is_array($objectRef['phone']))
