@@ -26,21 +26,21 @@ class CRM_Core_Cividesk {
   static function register($extension) {
     if ($domain_id = CRM_Core_Config::domainID()) {
       // Gather information from domain settings
-      $params = array('id' => $domain_id);
+      $params = ['id' => $domain_id];
       CRM_Core_BAO_Domain::retrieve($params, $domain);
       unset($params['id']);
-      $locParams = $params + array('entity_id' => $domain_id, 'entity_table' => 'civicrm_domain');
+      $locParams = $params + ['entity_id' => $domain_id, 'entity_table' => 'civicrm_domain'];
       $defaults = CRM_Core_BAO_Location::getValues($locParams);
-      foreach (array('address', 'phone', 'email') as $info) {
+      foreach (['address', 'phone', 'email'] as $info) {
         $domain[$info] = reset(CRM_Utils_Array::value($info, $defaults));
       }
 
       // Create registration parameters
-      $registration = array(
+      $registration = [
         'extension' => $extension,
         'organization_name' => $domain['name'],
-        'description' => $domain['description'] );
-      foreach (array('street_address', 'supplemental_address_1', 'supplemental_address_2', 'city', 'postal_code', 'state_province_id', 'country_id') as $field)
+        'description' => $domain['description'] ];
+      foreach (['street_address', 'supplemental_address_1', 'supplemental_address_2', 'city', 'postal_code', 'state_province_id', 'country_id'] as $field)
         $registration[$field] = $domain['address'][$field] ?? NULL;
       $registration['phone'] = $domain['phone']['phone'];
       $registration['email'] = $domain['email']['email'];
@@ -51,7 +51,7 @@ class CRM_Core_Cividesk {
   }
 
   static function subscribe($list, $email) {
-    $params = array('list' => $list, 'email' => $email);
+    $params = ['list' => $list, 'email' => $email];
     return self::_rest_helper('http://my.cividesk.com/subscribe.php', $params);
   }
 
@@ -60,12 +60,12 @@ class CRM_Core_Cividesk {
    * from: http://wezfurlong.org/blog/2006/nov/http-post-from-php-without-curl/
    */
   static function _rest_helper($url, $params = null, $verb = 'GET', $format = 'json') {
-    $cparams = array(
-      'http' => array(
+    $cparams = [
+      'http' => [
         'method' => $verb,
         'ignore_errors' => true
-      )
-    );
+      ]
+    ];
     if ($params !== null) {
       $params = http_build_query($params);
       if ($verb == 'POST') {
