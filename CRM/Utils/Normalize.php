@@ -584,7 +584,7 @@ class CRM_Utils_Normalize {
             //do check for formatted difference, than only update.
             $formattedDiff = array_diff_assoc($orgPhoneValues, $formattedPhoneValues);
             if (!empty($formattedDiff)) {
-              $phoneUpdated = CRM_Core_BAO_Phone::add($formattedPhoneValues);
+              $phoneUpdated = CRM_Core_BAO_Phone::writeRecord($formattedPhoneValues);
               if ($phoneUpdated->id) {
                 $formattedPhoneIds[$phoneUpdated->id] = $phoneUpdated->id;
               }
@@ -608,7 +608,7 @@ class CRM_Utils_Normalize {
             //do check for formatted difference, than only update.
             $formattedDiff = array_diff($orgAddressValues, $formattedAddressValues);
             if (!empty($formattedDiff)) {
-              $addressUpdated = CRM_Core_BAO_Address::add($formattedAddressValues, FALSE);
+              $addressUpdated = CRM_Core_BAO_Address::writeRecord($formattedAddressValues, FALSE);
               if ($addressUpdated->id) {
                 $formattedAddressIds[$addressUpdated->id] = $addressUpdated->id;
               }
