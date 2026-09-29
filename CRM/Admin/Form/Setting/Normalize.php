@@ -29,7 +29,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
   function preProcess() {
     // Needs to be here as from is build before default values are set
     $this->_settings = CRM_Utils_Normalize::getSettings();
-    if (!$this->_settings) $this->_settings = array();
+    if (!$this->_settings) $this->_settings = [];
 
     // Get the default country information for phone/zip formatting
     $this->_country = CRM_Core_BAO_Country::defaultContactCountry();
@@ -79,18 +79,18 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
       ts('Normalize local numbers as International')
     );
 
-    $options = array(
+    $options = [
       'O' => ts('City no format'),
       '1' => ts('Capitalize city names'),
       '2' => ts('Capitalize first letter of each word in city names')
-    );
+    ];
     $this->addRadio( 'address_CityCaps', '', $options );
 
-    $optionsStreet = array(
+    $optionsStreet = [
       'O' => ts('Street Address no format'),
       '1' => ts('Capitalize Street Address'),
       '2' => ts('Capitalize first letter of each word in Street Address, and directionals such as NE, NW, etc.')
-    );
+    ];
     $this->addRadio( 'address_StreetCaps', '', $optionsStreet );
 
     $this->add('checkbox',
@@ -106,19 +106,19 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     $this->addElement('text', "to_contact_id", ts("To Contact ID"));
     $this->addElement('text', "from_contact_id", ts("From Contact ID"));
     $this->addElement('text', "batch_size", ts("Batch Size..."));
-    $this->addFormRule(array('CRM_Admin_Form_Setting_Normalize', 'formRule'));
+    $this->addFormRule(['CRM_Admin_Form_Setting_Normalize', 'formRule']);
 
-    $this->addButtons(array(
-      array(
+    $this->addButtons([
+      [
         'type' => 'submit',
         'name' => ts('Save'),
         'isDefault' => TRUE,
-      ),
-      array(
+      ],
+      [
         'type' => 'cancel',
         'name' => ts('Cancel'),
-      ),
-    ));
+      ],
+    ]);
   }
 
   function setDefaultValues() {
@@ -127,7 +127,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
   }
 
   static function formRule($fields) {
-    $errors = array();
+    $errors = [];
     //validate data when user click on perform normalization.
     if (isset($fields['_qf_Normalize_submit']) && $fields['_qf_Normalize_submit'] == 'Perform Normalization') {
       //validate from contact id.
@@ -176,7 +176,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     foreach ($this->_elementIndex as $key => $dontcare) {
       $prefix = explode('_', $key);
       $prefix = reset($prefix);
-      if (in_array($prefix, array('contact', 'phone', 'address'))) {
+      if (in_array($prefix, ['contact', 'phone', 'address'])) {
         Civi::settings()->set($key, CRM_Utils_Array::value($key, $params, 0));
       }
     }
@@ -184,21 +184,21 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
 
   static function getRunner($skipEndUrl = FALSE, $fromContactId, $toContactId, $batchSize) {
     // Setup the Queue
-    $queue = CRM_Queue_Service::singleton()->create(array(
+    $queue = CRM_Queue_Service::singleton()->create([
       'name'  => self::QUEUE_NAME,
       'type'  => 'Sql',
       'reset' => TRUE,
-    ));
+    ]);
 
     Civi::settings()->set('normalization_stats', ['contact' => 0, 'phone' => 0, 'address' => 0]);
 
     for ($startId = $fromContactId; $startId <= $toContactId; $startId += $batchSize) {
       $endId = $startId + $batchSize - 1;
-      $title = ts('Normalizing contacts (%1 => %2)', array(1 => $startId, 2 => $endId));
+      $title = ts('Normalizing contacts (%1 => %2)', [1 => $startId, 2 => $endId]);
 
       $task  = new CRM_Queue_Task(
-        array ('CRM_Admin_Form_Setting_Normalize', 'normalizeContacts'),
-        array($startId, $endId, $title),
+        ['CRM_Admin_Form_Setting_Normalize', 'normalizeContacts'],
+        [$startId, $endId, $title],
         "Preparing queue for $title"
       );
 
@@ -207,12 +207,12 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
     }
 
     // Setup the Runner
-    $runnerParams = array(
+    $runnerParams = [
       'title' => ts('Contact Normalization'),
       'queue' => $queue,
       'errorMode'=> CRM_Queue_Runner::ERROR_ABORT,
       'onEndUrl' => CRM_Utils_System::url(self::END_URL, self::END_PARAMS, TRUE, NULL, FALSE),
-    );
+    ];
     // Skip End URL to prevent redirect
     // if calling from cron job
     if ($skipEndUrl == TRUE) {
@@ -225,7 +225,7 @@ class CRM_Admin_Form_Setting_Normalize extends CRM_Admin_Form_Setting {
   static function normalizeContacts(CRM_Queue_TaskContext $ctx, $fromId, $toId) {
     $normalization  = CRM_Utils_Normalize::singleton();
     $processingInfo = $normalization->processNormalization($fromId, $toId);
-    $updateInfo = array('contact' => count($processingInfo['name']), 'phone' => count($processingInfo['phone']), 'address'=> count($processingInfo['address']));
+    $updateInfo = ['contact' => count($processingInfo['name']), 'phone' => count($processingInfo['phone']), 'address'=> count($processingInfo['address'])];
     self::updatePushStats($updateInfo);
     return CRM_Queue_Task::TASK_SUCCESS;
   }
