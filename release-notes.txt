@@ -1,3 +1,13 @@
+Version 1.3 - 2026/10/05
+- Minimum supported CiviCRM version is now 5.61.
+- Fixed PHP warning and deprecated API usage.
+- Replaced deprecated Address/Phone add methods with writeRecord().
+- Removed deprecated CRM_Utils_Array::value usage.
+- Removed deprecated CRM_Core_DAO::$_nullObject usage.
+- Replaced deprecated API exception references.
+- Removed empty ts() calls.
+- Converted remaining PHP array() syntax to short array syntax.
+
 Version 1.1 - 2018/07/20
 - Validation for Canada Zip code.
 - 4.7 compatibility fixes.
